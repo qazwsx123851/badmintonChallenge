@@ -39,6 +39,7 @@ export const registrations = pgTable("registrations", {
   type: text("type").notNull(),
   userId: varchar("user_id"),
   teamId: varchar("team_id"),
+  participantName: text("participant_name"),
   registeredAt: timestamp("registered_at").notNull().default(sql`now()`),
 });
 

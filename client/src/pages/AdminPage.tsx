@@ -1,28 +1,66 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import StatCard from "@/components/StatCard";
 import CreateEventDialog from "@/components/CreateEventDialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Settings, Calendar, Users, MapPin, Trophy, Plus, Zap } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import type { Event, Court, Registration, Match } from "@shared/schema";
 
 export default function AdminPage() {
   const [createEventOpen, setCreateEventOpen] = useState(false);
+  const [selectedEventForAllocation, setSelectedEventForAllocation] = useState("");
+  const { toast } = useToast();
 
-  // Mock data - todo: remove mock functionality
-  const stats = [
-    { title: "本月活動", value: 12, icon: Calendar, trend: { value: "+20%", isPositive: true }, colorScheme: "primary" as const },
-    { title: "總報名人數", value: 248, icon: Users, trend: { value: "+15%", isPositive: true }, colorScheme: "secondary" as const },
-    { title: "可用場地", value: 4, icon: MapPin, description: "共 6 個場地", colorScheme: "accent" as const },
-    { title: "進行中賽程", value: 3, icon: Trophy, description: "今日活動", colorScheme: "primary" as const },
-  ];
+  const { data: events } = useQuery<Event[]>({ queryKey: ["/api/events"] });
+  const { data: courts } = useQuery<Court[]>({ queryKey: ["/api/courts"] });
+  const { data: registrations } = useQuery<Registration[]>({ queryKey: ["/api/registrations"] });
+  const { data: matches } = useQuery<Match[]>({ queryKey: ["/api/matches"] });
 
-  const handleCreateEvent = (data: any) => {
-    console.log("Creating event:", data);
-  };
+  const availableCourts = courts?.filter(c => c.isAvailable).length || 0;
+  const inProgressMatches = matches?.filter(m => m.status === "in_progress").length || 0;
+
+  const allocateMutation = useMutation({
+    mutationFn: async (eventId: string) => 
+      apiRequest(`/api/events/${eventId}/allocate`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
+      setSelectedEventForAllocation("");
+      toast({
+        title: "分配成功",
+        description: "賽程已自動分配完成",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "分配失敗",
+        description: "請確認有足夠的場地和報名人數",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAllocateMatches = () => {
-    console.log("Allocating matches...");
+    if (!selectedEventForAllocation) {
+      toast({
+        title: "請選擇活動",
+        description: "請先選擇要分配賽程的活動",
+      });
+      return;
+    }
+    allocateMutation.mutate(selectedEventForAllocation);
   };
+
+  const stats = [
+    { title: "本月活動", value: events?.length || 0, icon: Calendar, colorScheme: "primary" as const },
+    { title: "總報名人數", value: registrations?.length || 0, icon: Users, colorScheme: "secondary" as const },
+    { title: "可用場地", value: availableCourts, icon: MapPin, description: `共 ${courts?.length || 0} 個場地`, colorScheme: "accent" as const },
+    { title: "進行中賽程", value: inProgressMatches, icon: Trophy, description: "今日活動", colorScheme: "primary" as const },
+  ];
 
   return (
     <div className="min-h-screen pt-20 pb-12">
@@ -77,18 +115,36 @@ export default function AdminPage() {
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-bold mb-3">自動分配賽程</h3>
-                <p className="text-sm text-muted-foreground mb-6">
+                <p className="text-sm text-muted-foreground mb-4">
                   根據報名情況與場地資源，智慧分配比賽時段
                 </p>
-                <Button 
-                  variant="secondary" 
-                  onClick={handleAllocateMatches}
-                  className="rounded-full shadow-md font-medium"
-                  data-testid="button-allocate-matches"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  開始分配
-                </Button>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-select">選擇活動</Label>
+                    <Select value={selectedEventForAllocation} onValueChange={setSelectedEventForAllocation}>
+                      <SelectTrigger className="h-12 rounded-xl" id="event-select" data-testid="select-allocation-event">
+                        <SelectValue placeholder="請選擇要分配的活動" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {events?.map((event) => (
+                          <SelectItem key={event.id} value={event.id}>
+                            {event.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    variant="secondary" 
+                    onClick={handleAllocateMatches}
+                    className="rounded-full shadow-md font-medium w-full"
+                    data-testid="button-allocate-matches"
+                    disabled={allocateMutation.isPending}
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    {allocateMutation.isPending ? "分配中..." : "開始分配"}
+                  </Button>
+                </div>
               </div>
             </div>
           </Card>
@@ -97,26 +153,29 @@ export default function AdminPage() {
         <Card className="p-8 shadow-xl rounded-2xl border-0">
           <h3 className="text-2xl font-bold mb-6">近期活動</h3>
           <div className="space-y-4">
-            {[
-              { name: "週五夜間歡樂場", date: "2025/11/07", registrations: 12 },
-              { name: "週六早晨練習賽", date: "2025/12/08", registrations: 8 },
-              { name: "週日下午友誼賽", date: "2025/12/09", registrations: 20 },
-            ].map((event, i) => (
+            {events?.slice(0, 3).map((event, i) => (
               <div
-                key={i}
+                key={event.id}
                 className="flex items-center justify-between p-5 bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl hover:shadow-md transition-all duration-300 border border-muted"
                 data-testid={`recent-event-${i}`}
               >
                 <div>
                   <p className="font-bold text-lg">{event.name}</p>
-                  <p className="text-sm text-muted-foreground font-medium">{event.date}</p>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {new Date(event.startTime).toLocaleDateString()}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-primary">{event.registrations}</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {registrations?.filter(r => r.eventId === event.id).length || 0}
+                  </p>
                   <p className="text-xs text-muted-foreground font-medium">已報名</p>
                 </div>
               </div>
             ))}
+            {events?.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">還沒有活動</p>
+            )}
           </div>
         </Card>
       </div>
@@ -124,7 +183,6 @@ export default function AdminPage() {
       <CreateEventDialog
         open={createEventOpen}
         onOpenChange={setCreateEventOpen}
-        onSubmit={handleCreateEvent}
       />
     </div>
   );

@@ -6,53 +6,83 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Users, User } from "lucide-react";
 import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Team, InsertRegistration, Registration } from "@shared/schema";
 
 interface RegistrationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  eventId: string;
   eventName: string;
-  onSubmit?: (data: { type: string; teamId?: string; userName?: string }) => void;
 }
 
 export default function RegistrationDialog({
   open,
   onOpenChange,
+  eventId,
   eventName,
-  onSubmit,
 }: RegistrationDialogProps) {
   const [type, setType] = useState<"individual" | "team">("individual");
   const [userName, setUserName] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
+  const { toast } = useToast();
+
+  const { data: teams } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
+    enabled: open && type === "team",
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (data: InsertRegistration) => 
+      apiRequest<Registration>("/api/registrations", { method: "POST", body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/registrations"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      onOpenChange(false);
+      setUserName("");
+      setSelectedTeam("");
+      toast({
+        title: "報名成功",
+        description: "您已成功報名此活動",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "報名失敗",
+        description: "請稍後再試",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit?.({
+    
+    const registrationData: InsertRegistration = {
+      eventId,
       type,
-      teamId: type === "team" ? selectedTeam : undefined,
-      userName: type === "individual" ? userName : undefined,
-    });
-    onOpenChange(false);
-  };
+      userId: type === "individual" ? `user-${Date.now()}` : null,
+      teamId: type === "team" ? selectedTeam : null,
+      participantName: type === "individual" ? userName : null,
+    };
 
-  // Mock teams data
-  const mockTeams = [
-    { id: "1", name: "快樂羽球隊" },
-    { id: "2", name: "衝鋒隊" },
-    { id: "3", name: "夢想隊" },
-  ];
+    registerMutation.mutate(registrationData);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-testid="dialog-registration">
+      <DialogContent data-testid="dialog-registration" className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>報名 - {eventName}</DialogTitle>
+          <DialogTitle className="text-2xl">報名 - {eventName}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <Label>報名方式</Label>
             <RadioGroup value={type} onValueChange={(v) => setType(v as "individual" | "team")}>
-              <div className="flex items-center space-x-2 p-4 border rounded-md hover-elevate">
+              <div className="flex items-center space-x-2 p-4 border rounded-xl hover-elevate">
                 <RadioGroupItem value="individual" id="individual" data-testid="radio-individual" />
                 <Label htmlFor="individual" className="flex items-center gap-2 cursor-pointer flex-1">
                   <User className="w-5 h-5 text-primary" />
@@ -63,7 +93,7 @@ export default function RegistrationDialog({
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-2 p-4 border rounded-md hover-elevate">
+              <div className="flex items-center space-x-2 p-4 border rounded-xl hover-elevate">
                 <RadioGroupItem value="team" id="team" data-testid="radio-team" />
                 <Label htmlFor="team" className="flex items-center gap-2 cursor-pointer flex-1">
                   <Users className="w-5 h-5 text-primary" />
@@ -85,6 +115,7 @@ export default function RegistrationDialog({
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="請輸入您的姓名"
                 required
+                className="h-12 rounded-xl"
                 data-testid="input-username"
               />
             </div>
@@ -92,11 +123,11 @@ export default function RegistrationDialog({
             <div className="space-y-2">
               <Label htmlFor="team">選擇團隊</Label>
               <Select value={selectedTeam} onValueChange={setSelectedTeam} required>
-                <SelectTrigger data-testid="select-team">
+                <SelectTrigger className="h-12 rounded-xl" data-testid="select-team">
                   <SelectValue placeholder="請選擇團隊" />
                 </SelectTrigger>
-                <SelectContent>
-                  {mockTeams.map((team) => (
+                <SelectContent className="rounded-xl">
+                  {teams?.map((team) => (
                     <SelectItem key={team.id} value={team.id}>
                       {team.name}
                     </SelectItem>
@@ -107,11 +138,22 @@ export default function RegistrationDialog({
           )}
 
           <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1" data-testid="button-cancel">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)} 
+              className="flex-1 rounded-full h-12" 
+              data-testid="button-cancel"
+            >
               取消
             </Button>
-            <Button type="submit" className="flex-1" data-testid="button-submit-registration">
-              確認報名
+            <Button 
+              type="submit" 
+              className="flex-1 rounded-full h-12 font-medium" 
+              data-testid="button-submit-registration"
+              disabled={registerMutation.isPending}
+            >
+              {registerMutation.isPending ? "報名中..." : "確認報名"}
             </Button>
           </div>
         </form>

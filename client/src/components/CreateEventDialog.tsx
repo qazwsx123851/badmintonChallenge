@@ -3,23 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Event, InsertEvent } from "@shared/schema";
 
 interface CreateEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (data: {
-    name: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    maxParticipants: number;
-  }) => void;
 }
 
 export default function CreateEventDialog({
   open,
   onOpenChange,
-  onSubmit,
 }: CreateEventDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
@@ -28,25 +24,59 @@ export default function CreateEventDialog({
     endTime: "",
     maxParticipants: 20,
   });
+  const { toast } = useToast();
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertEvent) => 
+      apiRequest<Event>("/api/events", { method: "POST", body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      onOpenChange(false);
+      setFormData({
+        name: "",
+        date: "",
+        startTime: "",
+        endTime: "",
+        maxParticipants: 20,
+      });
+      toast({
+        title: "成功",
+        description: "活動已成功建立",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "錯誤",
+        description: "建立活動失敗",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit?.(formData);
-    onOpenChange(false);
-    setFormData({
-      name: "",
-      date: "",
-      startTime: "",
-      endTime: "",
-      maxParticipants: 20,
+    
+    const [year, month, day] = formData.date.split("-").map(Number);
+    const [startHour, startMinute] = formData.startTime.split(":").map(Number);
+    const [endHour, endMinute] = formData.endTime.split(":").map(Number);
+    
+    const startTime = new Date(year, month - 1, day, startHour, startMinute);
+    const endTime = new Date(year, month - 1, day, endHour, endMinute);
+    
+    createMutation.mutate({
+      name: formData.name,
+      startTime,
+      endTime,
+      status: "開放報名",
+      maxParticipants: formData.maxParticipants,
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-testid="dialog-create-event">
+      <DialogContent data-testid="dialog-create-event" className="rounded-2xl">
         <DialogHeader>
-          <DialogTitle>建立新活動</DialogTitle>
+          <DialogTitle className="text-2xl">建立新活動</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -58,6 +88,7 @@ export default function CreateEventDialog({
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="例如：週五夜間歡樂場"
               required
+              className="h-12 rounded-xl"
               data-testid="input-event-name"
             />
           </div>
@@ -70,6 +101,7 @@ export default function CreateEventDialog({
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               required
+              className="h-12 rounded-xl"
               data-testid="input-event-date"
             />
           </div>
@@ -83,6 +115,7 @@ export default function CreateEventDialog({
                 value={formData.startTime}
                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
                 required
+                className="h-12 rounded-xl"
                 data-testid="input-start-time"
               />
             </div>
@@ -95,6 +128,7 @@ export default function CreateEventDialog({
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                 required
+                className="h-12 rounded-xl"
                 data-testid="input-end-time"
               />
             </div>
@@ -109,6 +143,7 @@ export default function CreateEventDialog({
               value={formData.maxParticipants}
               onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
               required
+              className="h-12 rounded-xl"
               data-testid="input-max-participants"
             />
           </div>
@@ -118,13 +153,18 @@ export default function CreateEventDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="flex-1"
+              className="flex-1 rounded-full h-12"
               data-testid="button-cancel-event"
             >
               取消
             </Button>
-            <Button type="submit" className="flex-1" data-testid="button-create-event">
-              建立活動
+            <Button 
+              type="submit" 
+              className="flex-1 rounded-full h-12 font-medium" 
+              data-testid="button-create-event"
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending ? "建立中..." : "建立活動"}
             </Button>
           </div>
         </form>

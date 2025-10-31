@@ -1,69 +1,34 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import EventCard from "@/components/EventCard";
 import RegistrationDialog from "@/components/RegistrationDialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, Plus } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
+import type { Event, Registration } from "@shared/schema";
 
 export default function EventsPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Mock data - todo: remove mock functionality
-  const mockEvents = [
-    {
-      id: "1",
-      name: "週五夜間歡樂場",
-      startTime: new Date(2025, 10, 7, 19, 0),
-      endTime: new Date(2025, 10, 7, 21, 0),
-      status: "開放報名",
-      currentRegistrations: 12,
-      maxParticipants: 20,
-    },
-    {
-      id: "2",
-      name: "週六早晨練習賽",
-      startTime: new Date(2025, 11, 8, 8, 0),
-      endTime: new Date(2025, 11, 8, 10, 0),
-      status: "開放報名",
-      currentRegistrations: 8,
-      maxParticipants: 16,
-    },
-    {
-      id: "3",
-      name: "週日下午友誼賽",
-      startTime: new Date(2025, 11, 9, 14, 0),
-      endTime: new Date(2025, 11, 9, 17, 0),
-      status: "報名截止",
-      currentRegistrations: 20,
-      maxParticipants: 20,
-    },
-    {
-      id: "4",
-      name: "週三晚間進階班",
-      startTime: new Date(2025, 11, 5, 19, 0),
-      endTime: new Date(2025, 11, 5, 21, 0),
-      status: "開放報名",
-      currentRegistrations: 5,
-      maxParticipants: 12,
-    },
-  ];
+  const { data: events, isLoading } = useQuery<Event[]>({
+    queryKey: ["/api/events"],
+  });
+
+  const { data: allRegistrations } = useQuery<Registration[]>({
+    queryKey: ["/api/registrations"],
+  });
 
   const handleRegister = (eventId: string) => {
     setSelectedEventId(eventId);
     setDialogOpen(true);
   };
 
-  const handleRegistrationSubmit = (data: any) => {
-    console.log("Registration data:", data);
-  };
+  const selectedEvent = events?.find((e) => e.id === selectedEventId);
 
-  const selectedEvent = mockEvents.find((e) => e.id === selectedEventId);
-
-  const filteredEvents = mockEvents.filter((event) =>
+  const filteredEvents = events?.filter((event) =>
     event.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ) || [];
 
   return (
     <div className="min-h-screen pt-20 pb-12">
@@ -93,23 +58,42 @@ export default function EventsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              {...event}
-              onRegister={handleRegister}
-            />
-          ))}
-        </div>
-
-        {filteredEvents.length === 0 && (
-          <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-              <Calendar className="w-12 h-12 text-muted-foreground" />
-            </div>
-            <p className="text-xl text-muted-foreground font-medium">沒有找到符合的活動</p>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">載入中...</p>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredEvents.map((event) => {
+                const registrationCount = allRegistrations?.filter(r => r.eventId === event.id).length || 0;
+                return (
+                  <EventCard
+                    key={event.id}
+                    id={event.id}
+                    name={event.name}
+                    startTime={new Date(event.startTime)}
+                    endTime={new Date(event.endTime)}
+                    status={event.status}
+                    currentRegistrations={registrationCount}
+                    maxParticipants={event.maxParticipants || undefined}
+                    onRegister={handleRegister}
+                  />
+                );
+              })}
+            </div>
+
+            {filteredEvents.length === 0 && (
+              <div className="text-center py-20">
+                <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+                  <Calendar className="w-12 h-12 text-muted-foreground" />
+                </div>
+                <p className="text-xl text-muted-foreground font-medium">
+                  {events?.length === 0 ? "目前沒有活動" : "沒有找到符合的活動"}
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -117,8 +101,8 @@ export default function EventsPage() {
         <RegistrationDialog
           open={dialogOpen}
           onOpenChange={setDialogOpen}
+          eventId={selectedEvent.id}
           eventName={selectedEvent.name}
-          onSubmit={handleRegistrationSubmit}
         />
       )}
     </div>

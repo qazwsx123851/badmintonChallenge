@@ -1,46 +1,48 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import CourtCard from "@/components/CourtCard";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import type { Court, InsertCourt } from "@shared/schema";
 
 export default function CourtsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [courtName, setCourtName] = useState("");
+  const { toast } = useToast();
 
-  // Mock data - todo: remove mock functionality
-  const mockCourts = [
-    {
-      id: "a",
-      name: "A 場",
-      isAvailable: false,
-      currentMatch: {
-        participants: ["快樂隊", "衝鋒隊"],
-        time: "19:00 - 19:30",
-      },
+  const { data: courts, isLoading } = useQuery<Court[]>({
+    queryKey: ["/api/courts"],
+  });
+
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertCourt) => 
+      apiRequest<Court>("/api/courts", { method: "POST", body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/courts"] });
+      setCreateDialogOpen(false);
+      setCourtName("");
+      toast({
+        title: "成功",
+        description: "場地已成功建立",
+      });
     },
-    { id: "b", name: "B 場", isAvailable: true },
-    {
-      id: "c",
-      name: "C 場",
-      isAvailable: false,
-      currentMatch: {
-        participants: ["王大明", "李小華"],
-        time: "19:00 - 19:30",
-      },
+    onError: () => {
+      toast({
+        title: "錯誤",
+        description: "建立場地失敗",
+        variant: "destructive",
+      });
     },
-    { id: "d", name: "D 場", isAvailable: true },
-    { id: "e", name: "E 場", isAvailable: true },
-    { id: "f", name: "F 場", isAvailable: false, currentMatch: { participants: ["夢想隊", "閃電隊"], time: "19:30 - 20:00" } },
-  ];
+  });
 
   const handleCreateCourt = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Creating court:", courtName);
-    setCreateDialogOpen(false);
-    setCourtName("");
+    createMutation.mutate({ name: courtName, isAvailable: true });
   };
 
   return (
@@ -71,15 +73,21 @@ export default function CourtsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {mockCourts.map((court) => (
-            <CourtCard
-              key={court.id}
-              {...court}
-              onEdit={(id) => console.log("Edit court:", id)}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">載入中...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {courts?.map((court) => (
+              <CourtCard
+                key={court.id}
+                {...court}
+                onEdit={(id) => console.log("Edit court:", id)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -94,7 +102,7 @@ export default function CourtsPage() {
                 id="courtName"
                 value={courtName}
                 onChange={(e) => setCourtName(e.target.value)}
-                placeholder="例如：G 場"
+                placeholder="例如：E 場"
                 required
                 className="h-12 rounded-xl"
                 data-testid="input-court-name"
@@ -110,8 +118,14 @@ export default function CourtsPage() {
               >
                 取消
               </Button>
-              <Button variant="secondary" type="submit" className="flex-1 rounded-full h-12 font-medium" data-testid="button-submit-court">
-                新增
+              <Button 
+                variant="secondary" 
+                type="submit" 
+                className="flex-1 rounded-full h-12 font-medium" 
+                data-testid="button-submit-court"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending ? "建立中..." : "新增"}
               </Button>
             </div>
           </form>

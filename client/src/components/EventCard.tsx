@@ -53,7 +53,7 @@ export default function EventCard({
                   <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
                     <Users className="w-5 h-5 text-accent" />
                   </div>
-                  <span className="font-medium">{currentRegistrations}{maxParticipants ? ` / ${maxParticipants}` : ""} 人報名</span>
+                  <span className="font-medium" data-testid={`text-registration-count-${id}`}>{currentRegistrations}{maxParticipants ? ` / ${maxParticipants}` : ""} 人報名</span>
                 </div>
               </div>
             </div>
