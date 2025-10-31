@@ -1,0 +1,185 @@
+羽毛球場報名系統 - 開發架構建議書
+
+1. 專案概觀
+
+本文件旨在為「羽毛球場報名及比賽分配系統」提供一個現代化、可擴展且高效能的技術架構方案。
+
+此系統的核心目標是讓使用者（個人或團隊）能方便地報名參加球敘活動，並由系統根據可用的球場資源和報名情況，自動化地完成比賽或練習的分配。
+
+2. 核心功能需求
+
+根據您的需求，我們將系統功能拆解如下：
+
+使用者管理 (User Management):
+
+使用者註冊與登入（可包含個人帳號）。
+
+個人資料管理。
+
+團隊管理 (Team Management):
+
+使用者可以建立或加入團隊。
+
+團隊資料管理（隊長、隊員）。
+
+活動與報名 (Event & Registration):
+
+管理員（場館方）能建立活動場次（例如：「10/28 晚上 7-9 點場」）。
+
+使用者可以選擇以「個人」或「團隊」身份報名特定活動。
+
+即時顯示目前報名人數與隊伍。
+
+場地管理 (Court Management):
+
+管理員能設定場館擁有的球場數量及名稱（例如：A場、B場、C場）。
+
+自動分配系統 (Match Assignment System):
+
+系統的核心。
+
+管理員在報名截止後，能觸發此系統。
+
+系統根據總報名人數/隊伍數，以及可用場地數，自動生成賽程表或練習分配表。
+
+3. 建議技術架構 (Technology Stack)
+
+為了實現上述功能，特別是即時更新和自動化邏輯，我們建議採用以 JavaScript 為核心的全端架構，並利用 Firebase (BaaS) 來大幅簡化後端開發與維護。
+
+元件
+
+推薦技術
+
+理由
+
+前端 (Frontend)
+
+React.js
+
+一個高效能的 JavaScript 函式庫，非常適合建構動態、互動式的使用者介面 (UI)。我們可以將報名表單、賽程表、場地狀態都做成可重複使用的元件。
+
+後端 (Backend)
+
+Firebase (BaaS)
+
+「後端即服務」(Backend as a Service)。它將為我們處理掉最繁瑣的部分，包含：使用者認證、資料庫、後端邏輯。
+
+資料庫 (Database)
+
+Firestore
+
+Firebase 提供的 NoSQL 雲端資料庫。它的即時性 (Real-time) 是最大優勢：當賽程表一產生，所有使用者的畫面都能立即自動更新，無需手動刷新。
+
+核心邏輯 (Core Logic)
+
+Firebase Cloud Functions
+
+伺服器端的 JavaScript 函式。這將是我們執行「自動分配演算法」的地方。它獨立於前端應用，安全、強大且可自動擴展。
+
+使用者認證 (Auth)
+
+Firebase Authentication
+
+輕鬆整合 Google、Facebook、Email/密碼登入，我們無需自己從頭打造複雜的認證系統。
+
+4. 系統架構圖 (Flow Diagram)
+
+系統的運作流程如下：
+
+使用者/管理員 (User/Admin):
+
+透過瀏覽器開啟我們的 React 應用程式。
+
+React 應用程式 (Frontend):
+
+處理所有的畫面顯示與使用者互動。
+
+使用 Firebase Auth 進行使用者登入/註冊。
+
+直接讀取/寫入 Firestore 資料庫（例如：拉取活動列表、送出報名表單）。
+
+即時監聽 (listen) Firestore 中賽程表的變化，並自動更新畫面。
+
+自動分配 (Assignment Logic):
+
+管理員在 React 應用中按下「開始分配」按鈕。
+
+React 應用呼叫 (trigger) Firebase Cloud Function。
+
+Cloud Function 在後端伺服器上安全地執行：
+a. 從 Firestore 讀取所有報名者名單。
+b. 從 Firestore 讀取所有可用場地。
+c. 執行分配演算法。
+d. 將生成的賽程表 (Matches) 寫回 Firestore。
+
+(流程回到 2) 所有使用者的 React 應用程式因監聽到資料變化，自動顯示最新賽程。
+
+[使用者/管理員] <---> [React 前端應用]
+      |                       |
+      | (Auth, Read/Write)    | (Trigger)
+      V                       V
+[Firebase: Auth & Firestore]  [Firebase: Cloud Function]
+      ^                       |
+      | (Write Matches)       | (Read Registrations/Courts)
+      +-----------------------+
+
+
+5. 核心資料模型 (Data Model Sketch)
+
+我們將在 Firestore 中規劃以下幾個主要的資料集合 (Collections)：
+
+/users/{userId}
+
+name: "王大明"
+
+email: "user@example.com"
+
+teamId: (可選, 指向 /teams)
+
+/teams/{teamId}
+
+teamName: "快樂羽球隊"
+
+captainId: (指向 /users)
+
+members: [ (user IDs) ]
+
+/events/{eventId} (例如：10/28 晚間場)
+
+eventName: "10/28 晚間歡樂場"
+
+startTime: (Timestamp)
+
+endTime: (Timestamp)
+
+status: "開放報名" | "報名截止" | "活動結束"
+
+/events/{eventId}/registrations/{regId} (子集合)
+
+type: "individual" | "team"
+
+userId or teamId: (報名者/隊伍的 ID)
+
+registeredAt: (Timestamp)
+
+/courts/{courtId} (場地主資料)
+
+courtName: "A 場"
+
+isAvailable: true
+
+/matches/{matchId} (由 Cloud Function 產生)
+
+eventId: (關聯的活動)
+
+courtId: (分配的場地)
+
+startTime: (分配的開始時間)
+
+participants: [ (player/team IDs) ]
+
+status: "scheduled" | "in_progress" | "finished"
+
+6. 結論與後續步驟
+
+這個架構 (React + Firebase) 提供了極高的開發效率和強大的即時功能，非常適合本專案。
