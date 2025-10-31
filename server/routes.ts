@@ -151,19 +151,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const team = await storage.createTeam(data);
       res.status(201).json(team);
     } catch (error) {
-      res.status(400).json({ error: "Invalid team data" });
+      console.error("Error creating team:", error);
+      if (error instanceof Error && error.message.includes("團隊最多只能有")) {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(400).json({ error: "團隊資料格式錯誤，請確認隊員人數不超過1位（含隊長共2人）" });
     }
   });
 
   app.patch("/api/teams/:id", async (req, res) => {
     try {
+      if (req.body.memberIds) {
+        const validatedData = insertTeamSchema.partial().parse(req.body);
+        const team = await storage.updateTeam(req.params.id, validatedData);
+        if (!team) {
+          return res.status(404).json({ error: "找不到此團隊" });
+        }
+        return res.json(team);
+      }
+      
       const team = await storage.updateTeam(req.params.id, req.body);
       if (!team) {
-        return res.status(404).json({ error: "Team not found" });
+        return res.status(404).json({ error: "找不到此團隊" });
       }
       res.json(team);
     } catch (error) {
-      res.status(400).json({ error: "Failed to update team" });
+      console.error("Error updating team:", error);
+      if (error instanceof Error && error.message.includes("團隊最多只能有")) {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(400).json({ error: "更新團隊失敗，請確認資料格式" });
     }
   });
 
