@@ -62,7 +62,7 @@ export default function MatchesPage() {
   const timeSlots = ["19:00 - 19:30", "19:30 - 20:00", "20:00 - 20:30", "20:30 - 21:00"];
 
   return (
-    <div className="min-h-screen pt-20 pb-12 bg-gradient-to-b from-background to-muted/20">
+    <div className="min-h-screen pt-20 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-12">
           <div className="flex items-center gap-4 mb-6">
