@@ -44,6 +44,7 @@ export interface IStorage {
   // Registration operations
   getRegistrations(eventId?: string): Promise<Registration[]>;
   getRegistration(id: string): Promise<Registration | undefined>;
+  getEventParticipantCount(eventId: string): Promise<number>;
   createRegistration(registration: InsertRegistration): Promise<Registration>;
   deleteRegistration(id: string): Promise<boolean>;
 
@@ -233,6 +234,21 @@ export class MemStorage implements IStorage {
 
   async getRegistration(id: string): Promise<Registration | undefined> {
     return this.registrations.get(id);
+  }
+
+  async getEventParticipantCount(eventId: string): Promise<number> {
+    const registrations = await this.getRegistrations(eventId);
+    let count = 0;
+    
+    for (const reg of registrations) {
+      if (reg.type === "individual") {
+        count += 1;
+      } else if (reg.type === "team") {
+        count += 2;
+      }
+    }
+    
+    return count;
   }
 
   async createRegistration(insertRegistration: InsertRegistration): Promise<Registration> {

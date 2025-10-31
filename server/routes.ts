@@ -210,10 +210,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/registrations", async (req, res) => {
     try {
       const data = insertRegistrationSchema.parse(req.body);
+      
+      const event = await storage.getEvent(data.eventId);
+      if (!event) {
+        return res.status(404).json({ error: "找不到此活動" });
+      }
+
+      if (!event.maxParticipants) {
+        return res.status(400).json({ error: "活動未設定人數上限" });
+      }
+
+      const currentCount = await storage.getEventParticipantCount(data.eventId);
+      const newParticipants = data.type === "team" ? 2 : 1;
+      
+      if (currentCount + newParticipants > event.maxParticipants) {
+        return res.status(400).json({ 
+          error: `活動已額滿！目前報名：${currentCount}人，上限：${event.maxParticipants}人`,
+          currentCount,
+          maxParticipants: event.maxParticipants
+        });
+      }
+
       const registration = await storage.createRegistration(data);
       res.status(201).json(registration);
     } catch (error) {
-      res.status(400).json({ error: "Invalid registration data" });
+      console.error("Error creating registration:", error);
+      if (error instanceof Error) {
+        return res.status(400).json({ error: error.message });
+      }
+      res.status(400).json({ error: "報名資料格式錯誤" });
     }
   });
 
