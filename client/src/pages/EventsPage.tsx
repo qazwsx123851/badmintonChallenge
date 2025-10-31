@@ -17,6 +17,9 @@ export default function EventsPage() {
 
   const { data: allRegistrations } = useQuery<Registration[]>({
     queryKey: ["/api/registrations"],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   const handleRegister = (eventId: string) => {

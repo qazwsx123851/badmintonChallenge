@@ -72,9 +72,13 @@ export default function RegistrationDialog({
       }
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/registrations"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/registrations"] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/registrations", { eventId }] }),
+        queryClient.invalidateQueries({ queryKey: ["/api/events"] }),
+      ]);
+      await queryClient.refetchQueries({ queryKey: ["/api/registrations"] });
       onOpenChange(false);
       setUserName("");
       setSelectedTeam("");
