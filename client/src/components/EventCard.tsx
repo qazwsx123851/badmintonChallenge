@@ -1,8 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Calendar, Clock, Users } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface EventCardProps {
   id: string;
@@ -27,6 +29,7 @@ export default function EventCard({
 }: EventCardProps) {
   const isOpen = status === "開放報名";
   const isFull = maxParticipants ? currentRegistrations >= maxParticipants : false;
+  const progress = maxParticipants ? (currentRegistrations / maxParticipants) * 100 : 0;
 
   return (
     <Card className="overflow-hidden shadow-lg rounded-2xl border-0 card-hover fade-in">
@@ -53,7 +56,24 @@ export default function EventCard({
                   <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
                     <Users className="w-5 h-5 text-accent" />
                   </div>
-                  <span className="font-medium" data-testid={`text-registration-count-${id}`}>{currentRegistrations}{maxParticipants ? ` / ${maxParticipants}` : ""} 人報名</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-medium" data-testid={`text-registration-count-${id}`}>
+                        {currentRegistrations}{maxParticipants ? ` / ${maxParticipants}` : ""} 人報名
+                      </span>
+                      {maxParticipants && (
+                        <span className={cn(
+                          "text-xs font-semibold",
+                          progress >= 90 ? "text-red-500" : progress >= 70 ? "text-orange-500" : "text-green-500"
+                        )}>
+                          {progress.toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                    {maxParticipants && (
+                      <Progress value={progress} className="h-2" />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
