@@ -1,0 +1,170 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Flex:wght,wdth@400,100;500,110;600,110;700,110&family=Noto+Sans+TC:wght@400;500;600;700&display=swap");
+
+:root {
+  color-scheme: light dark;
+  --font-sans: "Roboto Flex", "Noto Sans TC", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* OKLCH based palette (light mode defaults) */
+  --color-primary: oklch(0.6 0.15 260);
+  --color-primary-soft: oklch(0.78 0.06 260);
+  --color-secondary: oklch(0.7 0.12 170);
+  --color-surface: oklch(0.96 0.015 240);
+  --color-surface-elevated: oklch(0.9 0.03 250);
+  --color-outline: oklch(0.8 0.04 240 / 0.6);
+  --color-text: oklch(0.22 0.04 250);
+  --color-muted: oklch(0.45 0.03 240);
+  --color-white: #ffffff;
+
+  --shadow-sm: 0 8px 16px rgba(15, 23, 42, 0.12);
+  --shadow-md: 0 16px 32px rgba(15, 23, 42, 0.16);
+  --shadow-lg: 0 28px 50px rgba(15, 23, 42, 0.18);
+
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+
+  --motion-fast: 140ms cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-medium: 260ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: oklch(0.72 0.16 260);
+    --color-primary-soft: oklch(0.28 0.04 260);
+    --color-secondary: oklch(0.68 0.12 180);
+    --color-surface: oklch(0.22 0.02 260);
+    --color-surface-elevated: oklch(0.3 0.03 250);
+    --color-outline: oklch(0.34 0.03 250 / 0.5);
+    --color-text: oklch(0.95 0.01 250);
+    --color-muted: oklch(0.74 0.02 240);
+    --shadow-sm: 0 12px 18px rgba(8, 15, 29, 0.35);
+    --shadow-md: 0 20px 40px rgba(8, 15, 29, 0.4);
+    --shadow-lg: 0 32px 60px rgba(8, 15, 29, 0.45);
+  }
+}
+
+html,
+body {
+  background: radial-gradient(
+      circle at top right,
+      rgba(124, 94, 255, 0.2),
+      transparent 45%
+    ),
+    radial-gradient(
+      circle at bottom left,
+      rgba(51, 214, 193, 0.2),
+      transparent 40%
+    ),
+    var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+}
+
+.md-surface {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.12),
+      rgba(255, 255, 255, 0.02)
+    ),
+    var(--color-surface-elevated);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.md-surface::before {
+  content: "";
+  position: absolute;
+  inset: -20% 10% auto auto;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(
+    circle,
+    rgba(124, 94, 255, 0.28),
+    rgba(124, 94, 255, 0)
+  );
+  filter: blur(40px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.md-elevation-1 {
+  box-shadow: var(--shadow-sm);
+}
+
+.md-elevation-2 {
+  box-shadow: var(--shadow-lg);
+}
+
+.md-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.md-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.12),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity var(--motion-fast);
+}
+
+.md-ripple:hover::after,
+.md-ripple:focus-visible::after {
+  opacity: 1;
+}
+
+.glass-surface {
+  backdrop-filter: blur(20px) saturate(130%);
+  background: rgba(14, 24, 44, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hero-glow {
+  position: absolute;
+  inset: -30%;
+  background: radial-gradient(
+      circle at top left,
+      rgba(124, 94, 255, 0.24),
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(51, 214, 193, 0.18),
+      transparent 55%
+    );
+  filter: blur(40px);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.blur-overlay {
+  position: relative;
+  background: rgba(14, 24, 44, 0.82);
+  backdrop-filter: blur(24px) saturate(160%);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.blur-overlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0)
+  );
+  pointer-events: none;
+}

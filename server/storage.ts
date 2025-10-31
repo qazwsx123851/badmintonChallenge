@@ -1,16 +1,16 @@
-import { 
-  type User, 
-  type InsertUser,
-  type Team,
-  type InsertTeam,
+import {
   type Court,
-  type InsertCourt,
   type Event,
+  type InsertCourt,
   type InsertEvent,
-  type Registration,
+  type InsertMatch,
   type InsertRegistration,
+  type InsertTeam,
+  type InsertUser,
   type Match,
-  type InsertMatch
+  type Registration,
+  type Team,
+  type User,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -24,21 +24,30 @@ export interface IStorage {
   getCourts(): Promise<Court[]>;
   getCourt(id: string): Promise<Court | undefined>;
   createCourt(court: InsertCourt): Promise<Court>;
-  updateCourt(id: string, court: Partial<InsertCourt>): Promise<Court | undefined>;
+  updateCourt(
+    id: string,
+    court: Partial<InsertCourt>,
+  ): Promise<Court | undefined>;
   deleteCourt(id: string): Promise<boolean>;
 
   // Event operations
   getEvents(): Promise<Event[]>;
   getEvent(id: string): Promise<Event | undefined>;
   createEvent(event: InsertEvent): Promise<Event>;
-  updateEvent(id: string, event: Partial<InsertEvent>): Promise<Event | undefined>;
+  updateEvent(
+    id: string,
+    event: Partial<InsertEvent>,
+  ): Promise<Event | undefined>;
   deleteEvent(id: string): Promise<boolean>;
 
   // Team operations
   getTeams(): Promise<Team[]>;
   getTeam(id: string): Promise<Team | undefined>;
   createTeam(team: InsertTeam): Promise<Team>;
-  updateTeam(id: string, team: Partial<InsertTeam>): Promise<Team | undefined>;
+  updateTeam(
+    id: string,
+    team: Partial<InsertTeam>,
+  ): Promise<Team | undefined>;
   deleteTeam(id: string): Promise<boolean>;
 
   // Registration operations
@@ -52,16 +61,24 @@ export interface IStorage {
   getMatches(eventId?: string): Promise<Match[]>;
   getMatch(id: string): Promise<Match | undefined>;
   createMatch(match: InsertMatch): Promise<Match>;
-  updateMatch(id: string, match: Partial<InsertMatch>): Promise<Match | undefined>;
+  updateMatch(
+    id: string,
+    match: Partial<InsertMatch>,
+  ): Promise<Match | undefined>;
   deleteMatch(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+
   private courts: Map<string, Court>;
+
   private events: Map<string, Event>;
+
   private teams: Map<string, Team>;
+
   private registrations: Map<string, Registration>;
+
   private matches: Map<string, Match>;
 
   constructor() {
@@ -72,39 +89,37 @@ export class MemStorage implements IStorage {
     this.registrations = new Map();
     this.matches = new Map();
 
-    // Add some initial mock data
     this.seedData();
   }
 
   private seedData() {
-    // Seed courts
-    const courts = [
-      { id: randomUUID(), name: "A 場", isAvailable: true },
-      { id: randomUUID(), name: "B 場", isAvailable: true },
-      { id: randomUUID(), name: "C 場", isAvailable: true },
-      { id: randomUUID(), name: "D 場", isAvailable: true },
+    const courts: Court[] = [
+      { id: randomUUID(), name: "A 號場", isAvailable: true },
+      { id: randomUUID(), name: "B 號場", isAvailable: true },
+      { id: randomUUID(), name: "C 號場", isAvailable: true },
+      { id: randomUUID(), name: "D 號場", isAvailable: true },
     ];
-    courts.forEach(court => this.courts.set(court.id, court));
+    courts.forEach((court) => this.courts.set(court.id, court));
 
-    // Seed events
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(19, 0, 0, 0);
-    
-    const events = [
+
+    const demoEvents: Event[] = [
       {
         id: randomUUID(),
-        name: "週五夜間歡樂場",
+        name: "週五夜間歡樂賽",
         startTime: new Date(tomorrow),
         endTime: new Date(tomorrow.getTime() + 2 * 60 * 60 * 1000),
         status: "開放報名",
         maxParticipants: 20,
       },
     ];
-    events.forEach(event => this.events.set(event.id, event));
+    demoEvents.forEach((event) => this.events.set(event.id, event));
   }
 
-  // User operations
+  // User operations -------------------------------------------------------
+
   async getUser(id: string): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -117,16 +132,17 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { 
-      ...insertUser, 
+    const user: User = {
+      ...insertUser,
       id,
-      email: insertUser.email ?? null
+      email: insertUser.email ?? null,
     };
     this.users.set(id, user);
     return user;
   }
 
-  // Court operations
+  // Court operations ------------------------------------------------------
+
   async getCourts(): Promise<Court[]> {
     return Array.from(this.courts.values());
   }
@@ -137,16 +153,18 @@ export class MemStorage implements IStorage {
 
   async createCourt(insertCourt: InsertCourt): Promise<Court> {
     const id = randomUUID();
-    const court: Court = { 
-      ...insertCourt, 
+    const court: Court = {
+      ...insertCourt,
       id,
-      isAvailable: insertCourt.isAvailable ?? true
     };
     this.courts.set(id, court);
     return court;
   }
 
-  async updateCourt(id: string, update: Partial<InsertCourt>): Promise<Court | undefined> {
+  async updateCourt(
+    id: string,
+    update: Partial<InsertCourt>,
+  ): Promise<Court | undefined> {
     const court = this.courts.get(id);
     if (!court) return undefined;
     const updated = { ...court, ...update };
@@ -158,7 +176,8 @@ export class MemStorage implements IStorage {
     return this.courts.delete(id);
   }
 
-  // Event operations
+  // Event operations ------------------------------------------------------
+
   async getEvents(): Promise<Event[]> {
     return Array.from(this.events.values());
   }
@@ -169,17 +188,20 @@ export class MemStorage implements IStorage {
 
   async createEvent(insertEvent: InsertEvent): Promise<Event> {
     const id = randomUUID();
-    const event: Event = { 
-      ...insertEvent, 
+    const event: Event = {
+      ...insertEvent,
       id,
       status: insertEvent.status ?? "開放報名",
-      maxParticipants: insertEvent.maxParticipants ?? null
+      maxParticipants: insertEvent.maxParticipants ?? null,
     };
     this.events.set(id, event);
     return event;
   }
 
-  async updateEvent(id: string, update: Partial<InsertEvent>): Promise<Event | undefined> {
+  async updateEvent(
+    id: string,
+    update: Partial<InsertEvent>,
+  ): Promise<Event | undefined> {
     const event = this.events.get(id);
     if (!event) return undefined;
     const updated = { ...event, ...update };
@@ -191,7 +213,8 @@ export class MemStorage implements IStorage {
     return this.events.delete(id);
   }
 
-  // Team operations
+  // Team operations -------------------------------------------------------
+
   async getTeams(): Promise<Team[]> {
     return Array.from(this.teams.values());
   }
@@ -202,16 +225,19 @@ export class MemStorage implements IStorage {
 
   async createTeam(insertTeam: InsertTeam): Promise<Team> {
     const id = randomUUID();
-    const team: Team = { 
-      ...insertTeam, 
+    const team: Team = {
+      ...insertTeam,
       id,
-      memberIds: insertTeam.memberIds ?? []
+      memberIds: insertTeam.memberIds ?? [],
     };
     this.teams.set(id, team);
     return team;
   }
 
-  async updateTeam(id: string, update: Partial<InsertTeam>): Promise<Team | undefined> {
+  async updateTeam(
+    id: string,
+    update: Partial<InsertTeam>,
+  ): Promise<Team | undefined> {
     const team = this.teams.get(id);
     if (!team) return undefined;
     const updated = { ...team, ...update };
@@ -223,11 +249,12 @@ export class MemStorage implements IStorage {
     return this.teams.delete(id);
   }
 
-  // Registration operations
+  // Registration operations ----------------------------------------------
+
   async getRegistrations(eventId?: string): Promise<Registration[]> {
     const all = Array.from(this.registrations.values());
     if (eventId) {
-      return all.filter(r => r.eventId === eventId);
+      return all.filter((registration) => registration.eventId === eventId);
     }
     return all;
   }
@@ -238,28 +265,28 @@ export class MemStorage implements IStorage {
 
   async getEventParticipantCount(eventId: string): Promise<number> {
     const registrations = await this.getRegistrations(eventId);
-    let count = 0;
-    
-    for (const reg of registrations) {
-      if (reg.type === "individual") {
-        count += 1;
-      } else if (reg.type === "team") {
-        count += 2;
+    return registrations.reduce((acc, registration) => {
+      if (registration.type === "individual") {
+        return acc + 1;
       }
-    }
-    
-    return count;
+      if (registration.type === "team") {
+        return acc + 2;
+      }
+      return acc;
+    }, 0);
   }
 
-  async createRegistration(insertRegistration: InsertRegistration): Promise<Registration> {
+  async createRegistration(
+    insertRegistration: InsertRegistration,
+  ): Promise<Registration> {
     const id = randomUUID();
-    const registration: Registration = { 
-      ...insertRegistration, 
+    const registration: Registration = {
+      ...insertRegistration,
       id,
       userId: insertRegistration.userId ?? null,
       teamId: insertRegistration.teamId ?? null,
       participantName: insertRegistration.participantName ?? null,
-      registeredAt: new Date()
+      registeredAt: new Date(),
     };
     this.registrations.set(id, registration);
     return registration;
@@ -269,11 +296,12 @@ export class MemStorage implements IStorage {
     return this.registrations.delete(id);
   }
 
-  // Match operations
+  // Match operations ------------------------------------------------------
+
   async getMatches(eventId?: string): Promise<Match[]> {
     const all = Array.from(this.matches.values());
     if (eventId) {
-      return all.filter(m => m.eventId === eventId);
+      return all.filter((match) => match.eventId === eventId);
     }
     return all;
   }
@@ -284,16 +312,19 @@ export class MemStorage implements IStorage {
 
   async createMatch(insertMatch: InsertMatch): Promise<Match> {
     const id = randomUUID();
-    const match: Match = { 
-      ...insertMatch, 
+    const match: Match = {
+      ...insertMatch,
       id,
-      status: insertMatch.status ?? "scheduled"
+      status: insertMatch.status ?? "scheduled",
     };
     this.matches.set(id, match);
     return match;
   }
 
-  async updateMatch(id: string, update: Partial<InsertMatch>): Promise<Match | undefined> {
+  async updateMatch(
+    id: string,
+    update: Partial<InsertMatch>,
+  ): Promise<Match | undefined> {
     const match = this.matches.get(id);
     if (!match) return undefined;
     const updated = { ...match, ...update };

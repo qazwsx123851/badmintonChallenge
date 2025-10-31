@@ -1,15 +1,29 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "framer-motion";
+import { MapPin, Plus, ShieldAlert } from "lucide-react";
+import type {
+  Court,
+  InsertCourt,
+  Match,
+  Registration,
+  Team,
+} from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import CourtCard from "@/components/CourtCard";
 import EditCourtDialog from "@/components/EditCourtDialog";
+import PageLayout from "@/components/layout/PageLayout";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import type { Court, InsertCourt, Match, Team, Registration } from "@shared/schema";
 
 export default function CourtsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -44,14 +58,14 @@ export default function CourtsPage() {
       setCreateDialogOpen(false);
       setCourtName("");
       toast({
-        title: "✅ 建立成功",
-        description: "場地已成功建立",
+        title: "新增場地成功",
+        description: "球場資料已建立。",
       });
     },
     onError: () => {
       toast({
-        title: "❌ 建立失敗",
-        description: "建立場地失敗",
+        title: "新增場地失敗",
+        description: "請稍後再試一次。",
         variant: "destructive",
       });
     },
@@ -69,26 +83,34 @@ export default function CourtsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/courts"] });
       toast({
-        title: "✅ 刪除成功",
-        description: "場地已成功刪除",
+        title: "刪除場地成功",
+        description: "球場已移除。",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "❌ 刪除失敗",
-        description: error.message || "刪除場地失敗",
+        title: "刪除場地失敗",
+        description: error.message || "系統暫時無法刪除該場地。",
         variant: "destructive",
       });
     },
   });
 
-  const handleCreateCourt = (e: React.FormEvent) => {
-    e.preventDefault();
-    createMutation.mutate({ name: courtName, isAvailable: true });
+  const handleCreateCourt = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!courtName.trim()) {
+      toast({
+        title: "請輸入場地名稱",
+        description: "場地名稱為必填欄位。",
+        variant: "destructive",
+      });
+      return;
+    }
+    createMutation.mutate({ name: courtName.trim(), isAvailable: true });
   };
 
   const handleEditCourt = (id: string) => {
-    const court = courts?.find(c => c.id === id);
+    const court = courts?.find((item) => item.id === id);
     if (court) {
       setSelectedCourt(court);
       setEditDialogOpen(true);
@@ -100,121 +122,170 @@ export default function CourtsPage() {
   };
 
   const getParticipantNames = (participantIds: string[]) => {
-    return participantIds.map(id => {
-      const team = teams?.find(t => t.id === id);
+    return participantIds.map((id) => {
+      const team = teams?.find((item) => item.id === id);
       if (team) {
         return team.name;
       }
-      
-      const registration = registrations?.find(r => 
-        r.userId === id || r.teamId === id
+
+      const registration = registrations?.find(
+        (item) => item.userId === id || item.teamId === id,
       );
-      
+
       if (registration?.participantName) {
         return registration.participantName;
       }
-      
-      return id.substring(0, 8) + "...";
+
+      return `${id.substring(0, 8)}…`;
     });
   };
 
-  return (
-    <div className="min-h-screen pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-secondary to-orange-600 flex items-center justify-center shadow-xl">
-                <MapPin className="w-9 h-9 text-white" />
-              </div>
-              <div>
-                <h1 className="text-5xl font-bold bg-gradient-to-r from-secondary to-orange-600 bg-clip-text text-transparent">場地管理</h1>
-                <p className="text-lg text-muted-foreground mt-2">
-                  管理羽球場地資訊，即時查看場地使用狀態
-                </p>
-              </div>
-            </div>
-            <Button 
-              onClick={() => setCreateDialogOpen(true)} 
-              variant="secondary"
-              className="rounded-full shadow-lg h-14 px-8 font-medium text-base"
-              data-testid="button-add-court"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              新增場地
-            </Button>
-          </div>
-        </div>
+  const enrichedCourts = useMemo(() => {
+    if (!courts) return [];
 
+    const now = new Date();
+    return courts.map((court) => {
+      const inProgressMatches =
+        matches?.filter(
+          (match) =>
+            match.courtId === court.id && match.status === "in_progress",
+        ) ?? [];
+
+      const upcomingMatches =
+        matches
+          ?.filter(
+            (match) =>
+              match.courtId === court.id &&
+              match.status === "scheduled" &&
+              new Date(match.startTime) > now,
+          )
+          .sort(
+            (a, b) =>
+              new Date(a.startTime).getTime() -
+              new Date(b.startTime).getTime(),
+          ) ?? [];
+
+      const currentMatch =
+        inProgressMatches.length > 0
+          ? {
+              time: new Date(inProgressMatches[0].startTime).toLocaleTimeString(
+                "zh-TW",
+                { hour: "2-digit", minute: "2-digit" },
+              ),
+              participants: getParticipantNames(
+                inProgressMatches[0].participantIds,
+              ),
+            }
+          : undefined;
+
+      const nextMatch =
+        upcomingMatches.length > 0
+          ? {
+              time: new Date(upcomingMatches[0].startTime).toLocaleTimeString(
+                "zh-TW",
+                { hour: "2-digit", minute: "2-digit" },
+              ),
+              participants: getParticipantNames(
+                upcomingMatches[0].participantIds,
+              ),
+            }
+          : undefined;
+
+      return { court, currentMatch, nextMatch };
+    });
+  }, [courts, matches, registrations, teams]);
+
+  return (
+    <PageLayout
+      title="場地管理"
+      subtitle="即時掌握球場使用率、即將進行的賽事與設備安排，確保營運排程順暢。"
+      heroIcon={<MapPin className="w-9 h-9 text-white" />}
+      actionSlot={
+        <Button
+          onClick={() => setCreateDialogOpen(true)}
+          variant="secondary"
+          className="rounded-full shadow-lg h-14 px-8 font-medium text-base"
+          data-testid="button-add-court"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          新增場地
+        </Button>
+      }
+    >
+      <div className="space-y-10">
         {isLoading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">載入中...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton
+                key={index}
+                className="h-80 rounded-3xl bg-white/5 border border-white/10"
+              />
+            ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courts?.map((court) => {
-              const now = new Date();
-              
-              const inProgressMatches = (matches ?? []).filter(m => 
-                m.courtId === court.id && m.status === "in_progress"
-              );
-              
-              const upcomingMatches = (matches ?? []).filter(m => 
-                m.courtId === court.id && 
-                m.status === "scheduled" &&
-                new Date(m.startTime) > now
-              ).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-              
-              const currentMatch = inProgressMatches.length > 0 ? {
-                time: new Date(inProgressMatches[0].startTime).toLocaleTimeString('zh-TW', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }),
-                participants: getParticipantNames(inProgressMatches[0].participantIds)
-              } : undefined;
-              
-              const nextMatch = upcomingMatches.length > 0 ? {
-                time: new Date(upcomingMatches[0].startTime).toLocaleTimeString('zh-TW', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }),
-                participants: getParticipantNames(upcomingMatches[0].participantIds)
-              } : undefined;
-              
-              return (
-                <CourtCard
+          <AnimatePresence>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {enrichedCourts.map(({ court, currentMatch, nextMatch }) => (
+                <motion.div
                   key={court.id}
-                  {...court}
-                  currentMatch={currentMatch}
-                  nextMatch={nextMatch}
-                  onEdit={handleEditCourt}
-                  onDelete={handleDeleteCourt}
-                />
-              );
-            })}
+                  initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.32, ease: "easeOut" }}
+                >
+                  <CourtCard
+                    {...court}
+                    currentMatch={currentMatch}
+                    nextMatch={nextMatch}
+                    onEdit={handleEditCourt}
+                    onDelete={handleDeleteCourt}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
+
+        {!isLoading && enrichedCourts.length === 0 && (
+          <div className="md-surface md-elevation-1 border border-white/10 rounded-3xl px-10 py-16 text-center space-y-4 text-white/80">
+            <div className="flex items-center justify-center">
+              <ShieldAlert className="w-12 h-12 text-white/70" />
+            </div>
+            <p className="text-lg">
+              尚未建立任何場地，點擊右上角「新增場地」即可開始設定。
+            </p>
           </div>
         )}
       </div>
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="rounded-2xl" data-testid="dialog-create-court">
+        <DialogContent
+          className="rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl"
+          data-testid="dialog-create-court"
+        >
           <DialogHeader>
-            <DialogTitle className="text-2xl">新增場地</DialogTitle>
+            <DialogTitle className="text-2xl text-white">新增場地</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateCourt} className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="courtName" className="text-base font-medium">場地名稱</Label>
+              <Label htmlFor="courtName" className="text-base font-medium text-white">
+                場地名稱
+              </Label>
               <Input
                 id="courtName"
                 value={courtName}
-                onChange={(e) => setCourtName(e.target.value)}
-                placeholder="例如：E 場"
+                onChange={(event) => setCourtName(event.target.value)}
+                placeholder="例如：E 號場"
                 required
-                className="h-12 rounded-xl"
+                className="h-12 rounded-xl bg-white/5 border-white/20 text-white placeholder:text-white/60"
                 data-testid="input-court-name"
               />
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 type="button"
                 variant="outline"
@@ -224,14 +295,14 @@ export default function CourtsPage() {
               >
                 取消
               </Button>
-              <Button 
-                variant="secondary" 
-                type="submit" 
-                className="flex-1 rounded-full h-12 font-medium" 
+              <Button
+                variant="secondary"
+                type="submit"
+                className="flex-1 rounded-full h-12 font-medium"
                 data-testid="button-submit-court"
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "建立中..." : "新增"}
+                {createMutation.isPending ? "建立中..." : "建立"}
               </Button>
             </div>
           </form>
@@ -243,6 +314,6 @@ export default function CourtsPage() {
         onOpenChange={setEditDialogOpen}
         court={selectedCourt}
       />
-    </div>
+    </PageLayout>
   );
 }
