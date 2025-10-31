@@ -1,133 +1,133 @@
-# 🏸 Badminton Court Registration System
+# 🏸 羽球場地報名系統
 
-A comprehensive badminton court booking and tournament management system built with modern web technologies. This application enables users to register for badminton events (individually or as teams), manages court availability, and automatically allocates matches across available courts.
+一個功能完善的羽球場地預約與賽事管理系統，採用現代化網頁技術打造。本系統支援用戶個人或團隊報名羽球活動、管理場地使用狀態，並自動分配比賽場地。
 
-## ✨ Features
+## ✨ 功能特色
 
-### User & Team Management
-- **User Registration & Authentication**: Secure login system with session management
-- **Team Creation**: Create teams with designated captains (max 2 members per team)
-- **Team Management**: Invite and manage team members
+### 用戶與團隊管理
+- **用戶註冊與認證**：具有會話管理的安全登入系統
+- **團隊建立**：建立團隊並指定隊長（每隊最多 2 人）
+- **團隊管理**：邀請和管理團隊成員
 
-### Event Management
-- **Event Creation**: Administrators can create badminton events with customizable time slots
-- **Real-time Registration Tracking**: Live capacity monitoring with progress indicators
-- **Registration Types**: Support for both individual and team registrations
-- **Capacity Control**: Automatic enforcement of participant limits with visual feedback
+### 活動管理
+- **活動建立**：管理員可建立自訂時段的羽球活動
+- **即時報名追蹤**：即時容量監控與進度條顯示
+- **報名類型**：支援個人報名與團隊報名
+- **容量控制**：自動執行參與人數限制並提供視覺化回饋
 
-### Court Management
-- **CRUD Operations**: Full create, read, update, and delete functionality for courts
-- **Availability Tracking**: Real-time court status monitoring
-- **Match Display**: Shows current and upcoming matches for each court
-- **Business Rules Enforcement**:
-  - Minimum 1 court required in system
-  - Cannot delete courts with scheduled or in-progress matches
-  - Court capacity limited to max 10 people
+### 場地管理
+- **完整 CRUD 操作**：場地的新增、查詢、更新與刪除功能
+- **可用性追蹤**：即時場地狀態監控
+- **比賽顯示**：顯示每個場地的當前與即將進行的比賽
+- **業務規則強制執行**：
+  - 系統至少需要保留 1 個場地
+  - 無法刪除已排程或進行中的場地
+  - 場地容量限制為最多 10 人
 
-### Automatic Match Allocation
-- **Smart Allocation Algorithm**: Automatically distributes participants across available courts
-- **Singles vs Doubles Detection**: Intelligently identifies match types based on participant count
-  - Singles: 2 participants (1v1)
-  - Doubles: 4 participants (2v2)
-- **Fair Distribution**: 30-minute time slots with court rotation for balanced play time
-- **Capacity Respect**: Ensures court capacity limits (max 10 people per court) are maintained
+### 自動比賽分配
+- **智慧分配演算法**：自動將參與者分配到可用場地
+- **單打與雙打識別**：根據參與人數智慧判斷比賽類型
+  - 單打：2 位參與者（1v1）
+  - 雙打：4 位參與者（2v2）
+- **公平分配**：30 分鐘時段與場地輪換，確保公平比賽時間
+- **容量遵守**：確保遵守場地容量限制（每場地最多 10 人）
 
-### Match Schedule
-- **Comprehensive View**: Display all matches with event names, times, and participants
-- **Visual Indicators**: Automatic badges for singles/doubles matches
-- **Real-time Updates**: Schedule refreshes to reflect latest allocations
+### 比賽賽程
+- **完整檢視**：顯示所有比賽的活動名稱、時間與參與者
+- **視覺指示**：自動為單打/雙打比賽加上標籤
+- **即時更新**：賽程會自動刷新以反映最新分配
 
-## 🎨 Design
+## 🎨 設計
 
-The application features a **Material Design 3**-inspired interface optimized for sports applications:
+本系統採用針對運動應用優化的 **Material Design 3** 風格介面：
 
-- **Color Palette**: 
-  - Electric Blue (Primary)
-  - Vibrant Orange (Secondary)
-  - Active Green (Accents)
-- **Typography**: Roboto font family for consistency
-- **Responsive Layout**: Mobile-first design optimized for athletes on-the-go
-- **Elevated UI**: Pronounced shadows and depth for modern aesthetics
-- **Touch-Optimized**: Large interactive elements for mobile devices
+- **色彩配置**：
+  - 電光藍（主色）
+  - 活力橙（次要色）
+  - 動感綠（強調色）
+- **字型**：使用 Roboto 字型系列以保持一致性
+- **響應式佈局**：行動優先設計，為運動員量身打造
+- **立體化 UI**：明顯的陰影與深度，呈現現代美學
+- **觸控優化**：大型互動元素，適合行動裝置
 
-## 🏗️ Architecture
+## 🏗️ 系統架構
 
-### Frontend Stack
+### 前端技術棧
 
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite (with hot module replacement)
-- **UI Components**: Radix UI primitives + shadcn/ui design system
-- **Styling**: Tailwind CSS with custom theme
-- **State Management**: TanStack Query (React Query) for server state
-- **Routing**: Wouter for lightweight client-side navigation
-- **Form Handling**: React Hook Form with Zod validation
-- **Date/Time Picker**: react-datepicker with custom Bootstrap-compatible styling
+- **框架**：React 18 搭配 TypeScript
+- **建構工具**：Vite（支援熱模組替換）
+- **UI 組件**：Radix UI 原語 + shadcn/ui 設計系統
+- **樣式**：Tailwind CSS 自訂主題
+- **狀態管理**：TanStack Query (React Query) 管理伺服器狀態
+- **路由**：Wouter 輕量級客戶端導航
+- **表單處理**：React Hook Form 搭配 Zod 驗證
+- **日期時間選擇器**：react-datepicker 搭配自訂 Bootstrap 相容樣式
 
-### Backend Stack
+### 後端技術棧
 
-- **Runtime**: Node.js with Express.js
-- **Language**: TypeScript
-- **Database**: PostgreSQL (via Neon serverless connector)
-- **ORM**: Drizzle ORM for type-safe queries
-- **Session Store**: PostgreSQL-backed sessions (connect-pg-simple)
-- **Validation**: Zod schemas shared between frontend and backend
+- **執行環境**：Node.js 搭配 Express.js
+- **程式語言**：TypeScript
+- **資料庫**：PostgreSQL（透過 Neon serverless 連接器）
+- **ORM**：Drizzle ORM 提供型別安全查詢
+- **會話儲存**：PostgreSQL 支援的會話（connect-pg-simple）
+- **驗證**：前後端共享的 Zod 模式
 
-### Database Schema
+### 資料庫架構
 
 ```
-users
-├── id (UUID, primary key)
-├── username (unique)
-└── password (hashed)
+users（用戶）
+├── id (UUID, 主鍵)
+├── username (唯一)
+└── password (雜湊)
 
-teams
-├── id (UUID, primary key)
+teams（團隊）
+├── id (UUID, 主鍵)
 ├── name
-├── captainId (foreign key → users.id)
-└── members (array of user IDs)
+├── captainId (外鍵 → users.id)
+└── members (用戶 ID 陣列)
 
-courts
-├── id (UUID, primary key)
+courts（場地）
+├── id (UUID, 主鍵)
 ├── name
-└── isAvailable (boolean)
+└── isAvailable (布林值)
 
-events
-├── id (UUID, primary key)
+events（活動）
+├── id (UUID, 主鍵)
 ├── name
 ├── startTime
 ├── endTime
 ├── maxParticipants
 └── status
 
-registrations
-├── id (UUID, primary key)
-├── eventId (foreign key → events.id)
-├── userId (foreign key → users.id, nullable)
-├── teamId (foreign key → teams.id, nullable)
+registrations（報名）
+├── id (UUID, 主鍵)
+├── eventId (外鍵 → events.id)
+├── userId (外鍵 → users.id, 可為空)
+├── teamId (外鍵 → teams.id, 可為空)
 ├── registrationType (individual | team)
 └── registeredAt
 
-matches
-├── id (UUID, primary key)
-├── eventId (foreign key → events.id)
-├── courtId (foreign key → courts.id)
-├── participantIds (array of user/team IDs)
+matches（比賽）
+├── id (UUID, 主鍵)
+├── eventId (外鍵 → events.id)
+├── courtId (外鍵 → courts.id)
+├── participantIds (用戶/團隊 ID 陣列)
 ├── startTime
 ├── endTime
 └── status (scheduled | in_progress | completed)
 ```
 
-## 🚀 Getting Started
+## 🚀 開始使用
 
-### Prerequisites
+### 環境需求
 
 - Node.js 20+
-- PostgreSQL database
-- npm or yarn
+- PostgreSQL 資料庫
+- npm 或 yarn
 
-### Environment Variables
+### 環境變數
 
-Create a `.env` file with the following variables:
+建立 `.env` 檔案並設定以下變數：
 
 ```env
 DATABASE_URL=postgresql://user:password@host:port/database
@@ -135,177 +135,178 @@ NODE_ENV=development
 SESSION_SECRET=your-session-secret
 ```
 
-### Installation
+### 安裝步驟
 
-1. **Clone the repository**
+1. **複製專案**
    ```bash
    git clone <your-repo-url>
    cd badminton-court-system
    ```
 
-2. **Install dependencies**
+2. **安裝相依套件**
    ```bash
    npm install
    ```
 
-3. **Set up the database**
+3. **設定資料庫**
    ```bash
    npm run db:push
    ```
 
-4. **Start the development server**
+4. **啟動開發伺服器**
    ```bash
    npm run dev
    ```
 
-5. **Open your browser**
-   Navigate to `http://localhost:5000`
+5. **開啟瀏覽器**
+   前往 `http://localhost:5000`
 
-## 📁 Project Structure
+## 📁 專案結構
 
 ```
 .
 ├── client/
 │   └── src/
-│       ├── components/      # Reusable UI components
-│       │   ├── ui/         # shadcn/ui components
+│       ├── components/      # 可重複使用的 UI 組件
+│       │   ├── ui/         # shadcn/ui 組件
 │       │   ├── CourtCard.tsx
 │       │   ├── EventCard.tsx
 │       │   ├── TeamCard.tsx
 │       │   ├── EditCourtDialog.tsx
 │       │   ├── RegistrationDialog.tsx
 │       │   └── MatchScheduleTable.tsx
-│       ├── pages/          # Page components
+│       ├── pages/          # 頁面組件
 │       │   ├── CourtsPage.tsx
 │       │   ├── EventsPage.tsx
 │       │   ├── MatchesPage.tsx
 │       │   └── TeamsPage.tsx
-│       ├── lib/            # Utilities and helpers
-│       └── App.tsx         # Root component with routing
+│       ├── lib/            # 工具程式與輔助函式
+│       └── App.tsx         # 根組件與路由
 ├── server/
-│   ├── index.ts           # Express server entry point
-│   ├── routes.ts          # API route definitions
-│   ├── storage.ts         # Storage abstraction layer
-│   └── vite.ts            # Vite development server integration
+│   ├── index.ts           # Express 伺服器進入點
+│   ├── routes.ts          # API 路由定義
+│   ├── storage.ts         # 儲存層抽象
+│   └── vite.ts            # Vite 開發伺服器整合
 ├── shared/
-│   └── schema.ts          # Shared Drizzle schemas and Zod validators
-└── migrations/            # Database migration files
+│   └── schema.ts          # 共享的 Drizzle 模式與 Zod 驗證器
+└── migrations/            # 資料庫遷移檔案
 ```
 
-## 🔑 Key Business Rules
+## 🔑 核心業務規則
 
-1. **Team Constraints**:
-   - Maximum 2 members per team (captain + 1 member)
-   - Captain must be set when creating a team
+1. **團隊限制**：
+   - 每隊最多 2 人（隊長 + 1 名隊員）
+   - 建立團隊時必須指定隊長
 
-2. **Registration Rules**:
-   - Individual registration counts as 1 person
-   - Team registration counts as 2 people (captain + member)
-   - Registration blocked when event reaches maxParticipants
+2. **報名規則**：
+   - 個人報名計為 1 人
+   - 團隊報名計為 2 人（隊長 + 隊員）
+   - 活動達到人數上限時無法報名
 
-3. **Court Constraints**:
-   - System must have at least 1 court at all times
-   - Maximum 10 people per court during matches
-   - Cannot delete courts with scheduled or in-progress matches
+3. **場地限制**：
+   - 系統至少需保留 1 個場地
+   - 比賽時每場地最多 10 人
+   - 無法刪除已排程或進行中的場地
 
-4. **Match Allocation**:
-   - Singles matches: 2 participants (1v1)
-   - Doubles matches: 4 participants (2v2)
-   - Matches allocated in 30-minute time slots
-   - Fair court rotation for all participants
+4. **比賽分配**：
+   - 單打比賽：2 位參與者（1v1）
+   - 雙打比賽：4 位參與者（2v2）
+   - 比賽以 30 分鐘為單位分配
+   - 所有參與者公平輪換場地
 
-## 🛠️ Development
+## 🛠️ 開發
 
-### Available Scripts
+### 可用指令
 
-- `npm run dev` - Start development server (frontend + backend)
-- `npm run build` - Build for production
-- `npm run db:push` - Push schema changes to database
-- `npm run db:push --force` - Force push schema changes (use with caution)
+- `npm run dev` - 啟動開發伺服器（前端 + 後端）
+- `npm run build` - 建置正式環境版本
+- `npm run db:push` - 推送資料庫結構變更
+- `npm run db:push --force` - 強制推送結構變更（謹慎使用）
 
-### Code Style
+### 程式碼風格
 
-- TypeScript strict mode enabled
-- ESLint for code quality
-- Tailwind CSS for styling (following Material Design 3 principles)
-- Component-based architecture with clear separation of concerns
+- 啟用 TypeScript 嚴格模式
+- 使用 ESLint 進行程式碼品質控管
+- Tailwind CSS 樣式（遵循 Material Design 3 原則）
+- 基於組件的架構，清楚分離關注點
 
-## 🧪 Testing
+## 🧪 測試
 
-The application includes comprehensive end-to-end testing covering:
-- Event creation and registration flows
-- Mixed individual and team registrations
-- Automatic match allocation
-- Schedule viewing with participant names
-- Court management operations
+本系統包含全面的端到端測試，涵蓋：
+- 活動建立與報名流程
+- 混合個人與團隊報名
+- 自動比賽分配
+- 參與者名稱顯示的賽程檢視
+- 場地管理操作
 
-## 🔐 Security Features
+## 🔐 安全功能
 
-- Password hashing for user accounts
-- Session-based authentication
-- CSRF protection via session management
-- Input validation on both client and server
-- SQL injection prevention via parameterized queries (Drizzle ORM)
+- 用戶帳號密碼雜湊
+- 基於會話的身份驗證
+- 透過會話管理提供 CSRF 保護
+- 客戶端與伺服器端的輸入驗證
+- 透過參數化查詢防止 SQL 注入（Drizzle ORM）
 
-## 📝 API Endpoints
+## 📝 API 端點
 
-### Courts
-- `GET /api/courts` - List all courts
-- `POST /api/courts` - Create a new court
-- `PUT /api/courts/:id` - Update court details
-- `DELETE /api/courts/:id` - Delete a court (with business rule validation)
+### 場地
+- `GET /api/courts` - 取得所有場地列表
+- `POST /api/courts` - 建立新場地
+- `PUT /api/courts/:id` - 更新場地資訊
+- `DELETE /api/courts/:id` - 刪除場地（含業務規則驗證）
 
-### Events
-- `GET /api/events` - List all events
-- `POST /api/events` - Create a new event
-- `GET /api/events/:id` - Get event details
+### 活動
+- `GET /api/events` - 取得所有活動列表
+- `POST /api/events` - 建立新活動
+- `GET /api/events/:id` - 取得活動詳細資訊
 
-### Teams
-- `GET /api/teams` - List all teams
-- `POST /api/teams` - Create a new team
-- `GET /api/teams/:id` - Get team details
+### 團隊
+- `GET /api/teams` - 取得所有團隊列表
+- `POST /api/teams` - 建立新團隊
+- `GET /api/teams/:id` - 取得團隊詳細資訊
 
-### Registrations
-- `GET /api/registrations` - List all registrations
-- `POST /api/registrations` - Create a new registration
-- `GET /api/registrations/event/:eventId` - Get registrations for an event
+### 報名
+- `GET /api/registrations` - 取得所有報名列表
+- `POST /api/registrations` - 建立新報名
+- `GET /api/registrations/event/:eventId` - 取得特定活動的報名資料
 
-### Matches
-- `GET /api/matches` - List all matches
-- `POST /api/events/:eventId/allocate-matches` - Auto-allocate matches for an event
+### 比賽
+- `GET /api/matches` - 取得所有比賽列表
+- `POST /api/events/:eventId/allocate-matches` - 自動為活動分配比賽
 
-## 🌟 Recent Updates
+## 🌟 最近更新
 
-### 2025-10-31: High-Priority Feature Enhancements
-- **Registration Dialog Real-time Updates**: Automatically refreshes event capacity when opened
-- **Match Schedule Improvements**: Added event name column and automatic singles/doubles badges
-- **Court Management System**:
-  - Edit court name and availability
-  - Delete courts with business rule validation
-  - Display current and upcoming matches for each court
-  - Comprehensive participant name resolution
+### 2025-10-31: 高優先級功能增強
+- **報名表單即時更新**：打開時自動刷新活動容量資訊
+- **比賽賽程改進**：新增活動名稱欄位與自動單打/雙打標籤
+- **場地管理系統**：
+  - 編輯場地名稱與可用性
+  - 刪除場地（含業務規則驗證）
+  - 顯示每個場地的當前與即將進行的比賽
+  - 完整的參與者名稱解析
+- **進度條功能**：活動卡片與報名表單顯示即時報名進度與視覺化百分比
 
-### 2025-10-31: Business Rules & Allocation Improvements
-- Schema-level validation for team sizes and court capacity
-- Enhanced allocation algorithm with singles/doubles distinction
-- Real-time capacity checking during registration
-- Improved error messages and user feedback
+### 2025-10-31: 業務規則與分配演算法改進
+- 團隊人數與場地容量的模式層級驗證
+- 增強分配演算法，區分單打與雙打
+- 報名時即時容量檢查
+- 改進錯誤訊息與用戶回饋
 
-## 🤝 Contributing
+## 🤝 貢獻
 
-This is a demonstration project built for learning and showcasing full-stack development skills.
+這是一個用於學習與展示全端開發技能的示範專案。
 
-## 📄 License
+## 📄 授權
 
-This project is open source and available under the MIT License.
+本專案採用 MIT 授權條款開放原始碼。
 
-## 🙏 Acknowledgments
+## 🙏 致謝
 
-- Built with [Replit](https://replit.com)
-- UI components from [shadcn/ui](https://ui.shadcn.com)
-- Icons from [Lucide](https://lucide.dev)
-- Design inspired by Material Design 3
+- 使用 [Replit](https://replit.com) 建置
+- UI 組件來自 [shadcn/ui](https://ui.shadcn.com)
+- 圖示來自 [Lucide](https://lucide.dev)
+- 設計靈感來自 Material Design 3
 
 ---
 
-**Built with ❤️ for the badminton community**
+**用 ❤️ 為羽球社群打造**
