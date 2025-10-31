@@ -100,7 +100,7 @@ export default function CourtsPage() {
   };
 
   const getParticipantNames = (participantIds: string[]) => {
-    return participantIds.slice(0, 2).map(id => {
+    return participantIds.map(id => {
       const team = teams?.find(t => t.id === id);
       if (team) {
         return team.name;
@@ -153,16 +153,32 @@ export default function CourtsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {courts?.map((court) => {
-              const courtMatches = matches?.filter(m => 
-                m.courtId === court.id && m.status === "in_progress"
-              ) || [];
+              const now = new Date();
               
-              const currentMatch = courtMatches.length > 0 ? {
-                time: new Date(courtMatches[0].startTime).toLocaleTimeString('zh-TW', {
+              const inProgressMatches = (matches ?? []).filter(m => 
+                m.courtId === court.id && m.status === "in_progress"
+              );
+              
+              const upcomingMatches = (matches ?? []).filter(m => 
+                m.courtId === court.id && 
+                m.status === "scheduled" &&
+                new Date(m.startTime) > now
+              ).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+              
+              const currentMatch = inProgressMatches.length > 0 ? {
+                time: new Date(inProgressMatches[0].startTime).toLocaleTimeString('zh-TW', {
                   hour: '2-digit',
                   minute: '2-digit'
                 }),
-                participants: getParticipantNames(courtMatches[0].participantIds)
+                participants: getParticipantNames(inProgressMatches[0].participantIds)
+              } : undefined;
+              
+              const nextMatch = upcomingMatches.length > 0 ? {
+                time: new Date(upcomingMatches[0].startTime).toLocaleTimeString('zh-TW', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }),
+                participants: getParticipantNames(upcomingMatches[0].participantIds)
               } : undefined;
               
               return (
@@ -170,6 +186,7 @@ export default function CourtsPage() {
                   key={court.id}
                   {...court}
                   currentMatch={currentMatch}
+                  nextMatch={nextMatch}
                   onEdit={handleEditCourt}
                   onDelete={handleDeleteCourt}
                 />

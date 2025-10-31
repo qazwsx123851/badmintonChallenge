@@ -44,25 +44,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/courts/:id", async (req, res) => {
     try {
-      const court = await storage.updateCourt(req.params.id, req.body);
+      const updateData = insertCourtSchema.partial().parse(req.body);
+      const court = await storage.updateCourt(req.params.id, updateData);
       if (!court) {
         return res.status(404).json({ error: "Court not found" });
       }
       res.json(court);
     } catch (error) {
-      res.status(400).json({ error: "Failed to update court" });
+      console.error("Error updating court:", error);
+      res.status(400).json({ error: "Invalid court data", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
   app.put("/api/courts/:id", async (req, res) => {
     try {
-      const court = await storage.updateCourt(req.params.id, req.body);
+      const updateData = insertCourtSchema.partial().parse(req.body);
+      const court = await storage.updateCourt(req.params.id, updateData);
       if (!court) {
         return res.status(404).json({ error: "Court not found" });
       }
       res.json(court);
     } catch (error) {
-      res.status(400).json({ error: "Failed to update court" });
+      console.error("Error updating court:", error);
+      res.status(400).json({ error: "Invalid court data", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -74,12 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const matches = await storage.getMatches();
-      const courtHasMatches = matches.some(
-        m => m.courtId === req.params.id && m.status === "scheduled"
+      const courtHasActiveMatches = matches.some(
+        m => m.courtId === req.params.id && (m.status === "scheduled" || m.status === "in_progress")
       );
       
-      if (courtHasMatches) {
-        return res.status(400).json({ error: "此場地有已排程的比賽，無法刪除" });
+      if (courtHasActiveMatches) {
+        return res.status(400).json({ error: "此場地有進行中或已排程的比賽，無法刪除" });
       }
 
       const success = await storage.deleteCourt(req.params.id);

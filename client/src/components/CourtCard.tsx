@@ -11,6 +11,10 @@ interface CourtCardProps {
     time: string;
     participants: string[];
   };
+  nextMatch?: {
+    time: string;
+    participants: string[];
+  };
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
@@ -20,6 +24,7 @@ export default function CourtCard({
   name,
   isAvailable,
   currentMatch,
+  nextMatch,
   onEdit,
   onDelete,
 }: CourtCardProps) {
@@ -52,23 +57,37 @@ export default function CourtCard({
           </Badge>
         </div>
 
-        {currentMatch && !isAvailable && (
-          <div className="bg-muted/50 rounded-xl p-4 text-sm">
-            <p className="font-bold mb-1 text-secondary">當前賽程</p>
-            <p className="text-foreground font-medium">
-              {currentMatch.participants.join(" vs ")}
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              {currentMatch.time}
-            </p>
-          </div>
-        )}
+        <div className="space-y-3">
+          {currentMatch && (
+            <div className="bg-secondary/10 rounded-xl p-4 text-sm border-l-4 border-secondary">
+              <p className="font-bold mb-1 text-secondary">🏸 進行中</p>
+              <p className="text-foreground font-medium">
+                {currentMatch.participants.join(" vs ")}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                開始時間：{currentMatch.time}
+              </p>
+            </div>
+          )}
 
-        {isAvailable && (
-          <div className="bg-accent/10 rounded-xl p-4 text-sm text-center">
-            <p className="text-accent font-bold text-base">場地空閒中</p>
-          </div>
-        )}
+          {nextMatch && (
+            <div className="bg-accent/10 rounded-xl p-4 text-sm border-l-4 border-accent">
+              <p className="font-bold mb-1 text-accent">⏰ 下一場</p>
+              <p className="text-foreground font-medium">
+                {nextMatch.participants.join(" vs ")}
+              </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                開始時間：{nextMatch.time}
+              </p>
+            </div>
+          )}
+
+          {!currentMatch && !nextMatch && (
+            <div className="bg-accent/10 rounded-xl p-4 text-sm text-center">
+              <p className="text-accent font-bold text-base">✓ 場地空閒中</p>
+            </div>
+          )}
+        </div>
 
         <div className="flex gap-2">
           <Button
