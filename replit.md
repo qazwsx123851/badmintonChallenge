@@ -4,6 +4,15 @@
 
 A comprehensive badminton court booking and tournament management system built with React, Express, and PostgreSQL. The application enables users to register for badminton events (individually or as teams), manages court availability, and automatically allocates matches across available courts. The system features a Material Design-inspired interface with vibrant sports-themed colors and responsive layouts optimized for mobile athletes.
 
+## Recent Changes
+
+### 2025-10-31: Bootstrap Date/Time Picker Integration
+- **Replaced custom date/time pickers** with `react-datepicker` for better Bootstrap compatibility
+- **New components**: `BootstrapDatePicker` and `BootstrapTimePicker` in `client/src/components/ui/`
+- **Custom styling**: Extensive CSS customization to match application theme with primary colors and rounded corners
+- **Improved UX**: 15-minute time intervals, better mobile support, cleaner interface
+- **Dialog stability**: Fixed layout issues by adding `max-h-[90vh]` and `overflow-y-auto` to CreateEventDialog
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -117,6 +126,7 @@ Preferred communication style: Simple, everyday language.
 - `tailwindcss`: Utility-first CSS framework
 - `react-hook-form` + `@hookform/resolvers`: Form handling
 - `zod`: Schema validation
+- `react-datepicker`: Bootstrap-compatible date and time picker with custom styling
 - `date-fns`: Date manipulation
 - `wouter`: Lightweight routing
 - `lucide-react`: Icon library

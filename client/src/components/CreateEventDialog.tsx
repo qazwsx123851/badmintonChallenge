@@ -2,8 +2,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { DatePicker } from "@/components/ui/date-picker";
-import { TimePicker } from "@/components/ui/time-picker";
+import { BootstrapDatePicker } from "@/components/ui/bootstrap-datepicker";
+import { BootstrapTimePicker } from "@/components/ui/bootstrap-timepicker";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -22,14 +22,14 @@ export default function CreateEventDialog({
 }: CreateEventDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
-    date: undefined as Date | undefined,
-    startTime: "",
-    endTime: "",
+    eventDate: null as Date | null,
+    startTime: null as Date | null,
+    endTime: null as Date | null,
     maxParticipants: 20,
   });
   const [errors, setErrors] = useState({
     name: false,
-    date: false,
+    eventDate: false,
     startTime: false,
     endTime: false,
     maxParticipants: false,
@@ -46,14 +46,14 @@ export default function CreateEventDialog({
       onOpenChange(false);
       setFormData({
         name: "",
-        date: undefined,
-        startTime: "",
-        endTime: "",
+        eventDate: null,
+        startTime: null,
+        endTime: null,
         maxParticipants: 20,
       });
       setErrors({
         name: false,
-        date: false,
+        eventDate: false,
         startTime: false,
         endTime: false,
         maxParticipants: false,
@@ -75,7 +75,7 @@ export default function CreateEventDialog({
   const validateForm = () => {
     const newErrors = {
       name: !formData.name.trim(),
-      date: !formData.date,
+      eventDate: !formData.eventDate,
       startTime: !formData.startTime,
       endTime: !formData.endTime,
       maxParticipants: formData.maxParticipants < 1,
@@ -98,22 +98,16 @@ export default function CreateEventDialog({
     }
     
     try {
-      if (!formData.date) return;
+      if (!formData.eventDate || !formData.startTime || !formData.endTime) return;
       
-      const [startHour, startMinute] = formData.startTime.split(":").map(Number);
-      const [endHour, endMinute] = formData.endTime.split(":").map(Number);
+      // 組合日期和時間
+      const startDateTime = new Date(formData.eventDate);
+      startDateTime.setHours(formData.startTime.getHours(), formData.startTime.getMinutes(), 0, 0);
       
-      if (isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
-        throw new Error("Invalid time format");
-      }
+      const endDateTime = new Date(formData.eventDate);
+      endDateTime.setHours(formData.endTime.getHours(), formData.endTime.getMinutes(), 0, 0);
       
-      const startTime = new Date(formData.date);
-      startTime.setHours(startHour, startMinute, 0, 0);
-      
-      const endTime = new Date(formData.date);
-      endTime.setHours(endHour, endMinute, 0, 0);
-      
-      if (endTime <= startTime) {
+      if (endDateTime <= startDateTime) {
         toast({
           title: "錯誤",
           description: "結束時間必須晚於開始時間",
@@ -124,8 +118,8 @@ export default function CreateEventDialog({
       
       createMutation.mutate({
         name: formData.name,
-        startTime,
-        endTime,
+        startTime: startDateTime,
+        endTime: endDateTime,
         status: "開放報名",
         maxParticipants: formData.maxParticipants,
       });
@@ -174,16 +168,17 @@ export default function CreateEventDialog({
             <Label className="text-base">
               活動日期 <span className="text-red-500">*</span>
             </Label>
-            <DatePicker
-              date={formData.date}
-              onSelect={(date) => {
-                setFormData({ ...formData, date });
-                setErrors({ ...errors, date: false });
+            <BootstrapDatePicker
+              selected={formData.eventDate}
+              onChange={(date) => {
+                setFormData({ ...formData, eventDate: date });
+                setErrors({ ...errors, eventDate: false });
               }}
               placeholder="選擇活動日期"
-              error={errors.date}
+              error={errors.eventDate}
+              minDate={new Date()}
             />
-            {errors.date && (
+            {errors.eventDate && (
               <p className="text-sm text-red-500">請選擇活動日期</p>
             )}
           </div>
@@ -193,8 +188,8 @@ export default function CreateEventDialog({
               <Label className="text-base">
                 開始時間 <span className="text-red-500">*</span>
               </Label>
-              <TimePicker
-                value={formData.startTime}
+              <BootstrapTimePicker
+                selected={formData.startTime}
                 onChange={(time) => {
                   setFormData({ ...formData, startTime: time });
                   setErrors({ ...errors, startTime: false });
@@ -211,8 +206,8 @@ export default function CreateEventDialog({
               <Label className="text-base">
                 結束時間 <span className="text-red-500">*</span>
               </Label>
-              <TimePicker
-                value={formData.endTime}
+              <BootstrapTimePicker
+                selected={formData.endTime}
                 onChange={(time) => {
                   setFormData({ ...formData, endTime: time });
                   setErrors({ ...errors, endTime: false });
