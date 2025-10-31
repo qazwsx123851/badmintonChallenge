@@ -22,23 +22,28 @@ export default function CourtCard({
   onEdit,
 }: CourtCardProps) {
   return (
-    <Card className="p-6 hover-elevate">
+    <Card className={`p-6 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl border-0 ${
+      isAvailable ? 'border-t-4 border-t-accent' : 'border-t-4 border-t-secondary'
+    }`}>
       <div className="flex flex-col gap-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-              isAvailable ? 'bg-accent/20' : 'bg-secondary/20'
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-md ${
+              isAvailable 
+                ? 'bg-gradient-to-br from-accent to-green-400' 
+                : 'bg-gradient-to-br from-secondary to-orange-400'
             }`}>
-              <MapPin className={`w-6 h-6 ${isAvailable ? 'text-accent' : 'text-secondary'}`} />
+              <MapPin className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h3 className="text-lg font-bold" data-testid={`text-court-name-${id}`}>{name}</h3>
-              <p className="text-sm text-muted-foreground">羽球場地</p>
+              <h3 className="text-2xl font-bold" data-testid={`text-court-name-${id}`}>{name}</h3>
+              <p className="text-sm text-muted-foreground font-medium">羽球場地</p>
             </div>
           </div>
           <Badge 
-            variant={isAvailable ? "default" : "secondary"}
-            className={isAvailable ? "bg-accent" : ""}
+            className={`rounded-full px-4 ${
+              isAvailable ? "bg-accent" : "bg-secondary"
+            }`}
             data-testid={`badge-court-status-${id}`}
           >
             {isAvailable ? "可用" : "使用中"}
@@ -46,22 +51,23 @@ export default function CourtCard({
         </div>
 
         {currentMatch && !isAvailable && (
-          <div className="bg-muted/50 rounded-md p-3 text-sm">
-            <p className="font-medium mb-1">當前賽程</p>
-            <p className="text-muted-foreground">{currentMatch.participants.join(" vs ")}</p>
-            <p className="text-xs text-muted-foreground mt-1">{currentMatch.time}</p>
+          <div className="bg-muted/50 rounded-xl p-4 text-sm">
+            <p className="font-bold mb-1 text-secondary">當前賽程</p>
+            <p className="text-foreground font-medium">{currentMatch.participants.join(" vs ")}</p>
+            <p className="text-xs text-muted-foreground mt-2">{currentMatch.time}</p>
           </div>
         )}
 
         {isAvailable && (
-          <div className="bg-accent/10 rounded-md p-3 text-sm text-center">
-            <p className="text-accent font-medium">場地空閒中</p>
+          <div className="bg-accent/10 rounded-xl p-4 text-sm text-center">
+            <p className="text-accent font-bold text-base">場地空閒中</p>
           </div>
         )}
 
         <Button
           variant="outline"
           size="sm"
+          className="rounded-full"
           onClick={() => onEdit?.(id)}
           data-testid={`button-edit-court-${id}`}
         >
