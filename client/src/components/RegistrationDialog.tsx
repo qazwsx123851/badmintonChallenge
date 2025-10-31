@@ -50,8 +50,8 @@ export default function RegistrationDialog({
 
   useEffect(() => {
     if (open) {
-      queryClient.invalidateQueries({ queryKey: ["/api/registrations", { eventId }] });
-      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+      queryClient.refetchQueries({ queryKey: ["/api/registrations", { eventId }] });
+      queryClient.refetchQueries({ queryKey: ["/api/events"] });
     }
   }, [open, eventId]);
 
