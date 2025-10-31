@@ -1,8 +1,11 @@
-import DatePicker from "react-datepicker";
+import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { zhTW } from "date-fns/locale/zh-TW";
 import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { forwardRef } from "react";
+
+registerLocale("zh-TW", zhTW);
 
 interface BootstrapTimePickerProps {
   selected: Date | null;
