@@ -6,7 +6,7 @@ interface Match {
   courtName: string;
   timeSlot: string;
   participants: string[];
-  status: "scheduled" | "in_progress" | "finished";
+  status: "scheduled" | "in_progress" | "completed" | "finished";
 }
 
 interface MatchScheduleTableProps {
@@ -29,11 +29,12 @@ export default function MatchScheduleTable({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "in_progress":
-        return <Badge className="bg-secondary rounded-full">進行中</Badge>;
+        return <Badge className="bg-orange-500 text-white rounded-full">進行中</Badge>;
       case "finished":
+      case "completed":
         return <Badge variant="secondary" className="rounded-full">已結束</Badge>;
       default:
-        return <Badge className="rounded-full">已排程</Badge>;
+        return <Badge className="bg-green-500 text-white rounded-full">已排程</Badge>;
     }
   };
 

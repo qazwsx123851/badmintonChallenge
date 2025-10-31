@@ -287,12 +287,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auto-allocation route
+  // Auto-allocation route - Badminton-aware algorithm
   app.post("/api/events/:id/allocate", async (req, res) => {
     try {
       const event = await storage.getEvent(req.params.id);
       if (!event) {
-        return res.status(404).json({ error: "Event not found" });
+        return res.status(404).json({ error: "找不到此活動" });
       }
 
       const registrations = await storage.getRegistrations(req.params.id);
@@ -300,49 +300,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const availableCourts = courts.filter(c => c.isAvailable);
 
       if (availableCourts.length === 0) {
-        return res.status(400).json({ error: "No available courts" });
+        return res.status(400).json({ error: "沒有可用場地" });
       }
 
       if (registrations.length === 0) {
-        return res.status(400).json({ error: "No registrations found" });
+        return res.status(400).json({ error: "尚無報名資料" });
       }
 
-      // Simple allocation algorithm
+      const individuals = registrations.filter(r => r.type === "individual");
+      const teams = registrations.filter(r => r.type === "team");
+
       const eventDuration = event.endTime.getTime() - event.startTime.getTime();
-      const slotDuration = 30 * 60 * 1000; // 30 minutes per match
+      const slotDuration = 30 * 60 * 1000;
       const numSlots = Math.floor(eventDuration / slotDuration);
       
       const matches = [];
-      const participantIds = registrations.map(r => r.userId || r.teamId!);
-      
-      let slotIndex = 0;
-      for (let i = 0; i < participantIds.length; i += 2) {
-        if (i + 1 < participantIds.length) {
-          const courtIndex = matches.length % availableCourts.length;
-          const court = availableCourts[courtIndex];
-          
-          const startTime = new Date(event.startTime.getTime() + slotIndex * slotDuration);
-          
-          const match = await storage.createMatch({
-            eventId: event.id,
-            courtId: court.id,
-            startTime,
-            participantIds: [participantIds[i], participantIds[i + 1]],
-            status: "scheduled"
+      const COURT_CAPACITY = 10;
+
+      const doublesMatches = [];
+      for (let i = 0; i < teams.length; i += 2) {
+        if (i + 1 < teams.length) {
+          doublesMatches.push({
+            participantIds: [teams[i].teamId!, teams[i + 1].teamId!],
+            playerCount: 4
           });
-          
-          matches.push(match);
-          
-          if ((matches.length) % availableCourts.length === 0) {
-            slotIndex++;
-          }
         }
       }
 
-      res.json({ matches, count: matches.length });
+      const singlesMatches = [];
+      for (let i = 0; i < individuals.length; i += 2) {
+        if (i + 1 < individuals.length) {
+          singlesMatches.push({
+            participantIds: [individuals[i].userId || individuals[i].participantName!, 
+                           individuals[i + 1].userId || individuals[i + 1].participantName!],
+            playerCount: 2
+          });
+        }
+      }
+
+      const allMatches = [...doublesMatches, ...singlesMatches];
+
+      let currentSlot = 0;
+      let matchesInCurrentSlot = 0;
+      let playersInCurrentSlot = 0;
+
+      for (const matchData of allMatches) {
+        while (playersInCurrentSlot + matchData.playerCount > COURT_CAPACITY) {
+          currentSlot++;
+          matchesInCurrentSlot = 0;
+          playersInCurrentSlot = 0;
+
+          if (currentSlot >= numSlots) {
+            console.warn(`時間不足：無法為所有參與者分配比賽`);
+            break;
+          }
+        }
+
+        if (currentSlot >= numSlots) {
+          break;
+        }
+
+        const courtIndex = matchesInCurrentSlot % availableCourts.length;
+        const court = availableCourts[courtIndex];
+        const startTime = new Date(event.startTime.getTime() + currentSlot * slotDuration);
+
+        const match = await storage.createMatch({
+          eventId: event.id,
+          courtId: court.id,
+          startTime,
+          participantIds: matchData.participantIds,
+          status: "scheduled"
+        });
+
+        matches.push(match);
+        matchesInCurrentSlot++;
+        playersInCurrentSlot += matchData.playerCount;
+
+        if (matchesInCurrentSlot >= availableCourts.length) {
+          currentSlot++;
+          matchesInCurrentSlot = 0;
+          playersInCurrentSlot = 0;
+        }
+      }
+
+      const unmatchedIndividuals = individuals.length % 2;
+      const unmatchedTeams = teams.length % 2;
+
+      res.json({ 
+        success: true,
+        matches, 
+        count: matches.length,
+        doublesCount: doublesMatches.length,
+        singlesCount: singlesMatches.length,
+        totalAllocated: matches.length,
+        unmatchedIndividuals,
+        unmatchedTeams,
+        message: `成功分配 ${matches.length} 場比賽（單打：${singlesMatches.length}，雙打：${doublesMatches.length}）`
+      });
     } catch (error) {
       console.error("Allocation error:", error);
-      res.status(500).json({ error: "Failed to allocate matches" });
+      res.status(500).json({ error: "自動分配失敗", details: error instanceof Error ? error.message : String(error) });
     }
   });
 

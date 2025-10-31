@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trophy, Download } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import type { Event, Match, Court } from "@shared/schema";
+import type { Event, Match, Court, Team, Registration } from "@shared/schema";
 
 export default function MatchesPage() {
   const [selectedEvent, setSelectedEvent] = useState("all");
@@ -21,16 +21,44 @@ export default function MatchesPage() {
     queryKey: ["/api/courts"],
   });
 
+  const { data: teams } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
+  });
+
+  const { data: registrations } = useQuery<Registration[]>({
+    queryKey: ["/api/registrations"],
+  });
+
   const matches = selectedEvent && selectedEvent !== "all"
     ? allMatches?.filter(m => m.eventId === selectedEvent) 
     : allMatches;
 
   const selectedEventData = events?.find(e => e.id === selectedEvent);
 
+  const getParticipantNames = (participantIds: string[]) => {
+    return participantIds.map(id => {
+      const team = teams?.find(t => t.id === id);
+      if (team) {
+        return `${team.name}（雙打）`;
+      }
+      
+      const registration = registrations?.find(r => 
+        r.userId === id || r.teamId === id
+      );
+      
+      if (registration?.participantName) {
+        return registration.participantName;
+      }
+      
+      return id.substring(0, 8) + "...";
+    });
+  };
+
   const transformedMatches = matches?.map(match => {
     const court = courts?.find(c => c.id === match.courtId);
     const startTime = new Date(match.startTime);
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
+    const participantNames = getParticipantNames(match.participantIds);
     
     return {
       id: match.id,
@@ -42,7 +70,7 @@ export default function MatchesPage() {
         hour: '2-digit', 
         minute: '2-digit' 
       })}`,
-      participants: match.participantIds.slice(0, 2),
+      participants: participantNames,
       status: match.status as "scheduled" | "in_progress" | "completed",
     };
   }) || [];

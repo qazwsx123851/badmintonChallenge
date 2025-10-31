@@ -27,20 +27,24 @@ export default function AdminPage() {
   const allocateMutation = useMutation({
     mutationFn: async (eventId: string) => {
       const res = await apiRequest("POST", `/api/events/${eventId}/allocate`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "分配失敗");
+      }
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
       setSelectedEventForAllocation("");
       toast({
-        title: "分配成功",
-        description: "賽程已自動分配完成",
+        title: "✅ 分配成功",
+        description: data.message || `成功分配 ${data.count} 場比賽`,
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "分配失敗",
-        description: "請確認有足夠的場地和報名人數",
+        title: "❌ 分配失敗",
+        description: error.message || "請確認有足夠的場地和報名人數",
         variant: "destructive",
       });
     },

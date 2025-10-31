@@ -4,12 +4,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, User } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Users, User, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Team, InsertRegistration, Registration } from "@shared/schema";
+import type { Team, InsertRegistration, Registration, Event } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
 interface RegistrationDialogProps {
@@ -17,6 +19,7 @@ interface RegistrationDialogProps {
   onOpenChange: (open: boolean) => void;
   eventId: string;
   eventName: string;
+  maxParticipants?: number;
 }
 
 export default function RegistrationDialog({
@@ -24,6 +27,7 @@ export default function RegistrationDialog({
   onOpenChange,
   eventId,
   eventName,
+  maxParticipants,
 }: RegistrationDialogProps) {
   const [type, setType] = useState<"individual" | "team">("individual");
   const [userName, setUserName] = useState("");
@@ -39,9 +43,26 @@ export default function RegistrationDialog({
     enabled: open && type === "team",
   });
 
+  const { data: registrations = [] } = useQuery<Registration[]>({
+    queryKey: ["/api/registrations", { eventId }],
+    enabled: open,
+  });
+
+  const currentCount = registrations.reduce((acc, reg) => {
+    return acc + (reg.type === "team" ? 2 : 1);
+  }, 0);
+
+  const newParticipants = type === "team" ? 2 : 1;
+  const wouldExceed = maxParticipants ? (currentCount + newParticipants) > maxParticipants : false;
+  const progress = maxParticipants ? (currentCount / maxParticipants) * 100 : 0;
+
   const registerMutation = useMutation({
     mutationFn: async (data: InsertRegistration) => {
       const res = await apiRequest("POST", "/api/registrations", data);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "報名失敗");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -52,14 +73,14 @@ export default function RegistrationDialog({
       setSelectedTeam("");
       setErrors({ userName: false, team: false });
       toast({
-        title: "報名成功",
-        description: "您已成功報名此活動",
+        title: "✅ 報名成功",
+        description: `您已成功報名「${eventName}」`,
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: "報名失敗",
-        description: "請稍後再試",
+        title: "❌ 報名失敗",
+        description: error.message || "請稍後再試",
         variant: "destructive",
       });
     },
@@ -100,10 +121,35 @@ export default function RegistrationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-testid="dialog-registration" className="rounded-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">報名 - {eventName}</DialogTitle>
+      <DialogContent data-testid="dialog-registration" className="rounded-2xl sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-2xl font-bold">報名 - {eventName}</DialogTitle>
+          {maxParticipants && (
+            <div className="space-y-2 pt-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  目前報名：<span className="font-semibold text-foreground">{currentCount}</span> / {maxParticipants} 人
+                </span>
+                <span className={cn(
+                  "font-semibold",
+                  progress >= 90 ? "text-red-500" : progress >= 70 ? "text-orange-500" : "text-green-500"
+                )}>
+                  {progress.toFixed(0)}%
+                </span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          )}
         </DialogHeader>
+
+        {wouldExceed && (
+          <Alert variant="destructive" className="border-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="font-medium">
+              此報名方式需要 {newParticipants} 個名額，但活動僅剩 {maxParticipants! - currentCount} 個名額。請選擇個人報名或聯繫活動主辦方。
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
@@ -191,23 +237,23 @@ export default function RegistrationDialog({
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-4 border-t">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => onOpenChange(false)} 
-              className="flex-1 rounded-full h-12" 
+              className="flex-1 rounded-full h-12 text-base font-medium" 
               data-testid="button-cancel"
             >
               取消
             </Button>
             <Button 
               type="submit" 
-              className="flex-1 rounded-full h-12 font-medium" 
+              className="flex-1 rounded-full h-12 text-base font-semibold shadow-md" 
               data-testid="button-submit-registration"
-              disabled={registerMutation.isPending}
+              disabled={registerMutation.isPending || wouldExceed}
             >
-              {registerMutation.isPending ? "報名中..." : "確認報名"}
+              {registerMutation.isPending ? "報名中..." : wouldExceed ? "名額不足" : "✓ 確認報名"}
             </Button>
           </div>
         </form>

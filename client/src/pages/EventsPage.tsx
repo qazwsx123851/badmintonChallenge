@@ -66,7 +66,10 @@ export default function EventsPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredEvents.map((event) => {
-                const registrationCount = allRegistrations?.filter(r => r.eventId === event.id).length || 0;
+                const eventRegistrations = allRegistrations?.filter(r => r.eventId === event.id) || [];
+                const participantCount = eventRegistrations.reduce((acc, reg) => {
+                  return acc + (reg.type === "team" ? 2 : 1);
+                }, 0);
                 return (
                   <EventCard
                     key={event.id}
@@ -75,7 +78,7 @@ export default function EventsPage() {
                     startTime={new Date(event.startTime)}
                     endTime={new Date(event.endTime)}
                     status={event.status}
-                    currentRegistrations={registrationCount}
+                    currentRegistrations={participantCount}
                     maxParticipants={event.maxParticipants || undefined}
                     onRegister={handleRegister}
                   />
@@ -103,6 +106,7 @@ export default function EventsPage() {
           onOpenChange={setDialogOpen}
           eventId={selectedEvent.id}
           eventName={selectedEvent.name}
+          maxParticipants={selectedEvent.maxParticipants || undefined}
         />
       )}
     </div>
