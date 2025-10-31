@@ -27,8 +27,10 @@ export default function CreateEventDialog({
   const { toast } = useToast();
 
   const createMutation = useMutation({
-    mutationFn: async (data: InsertEvent) => 
-      apiRequest<Event>("/api/events", { method: "POST", body: data }),
+    mutationFn: async (data: InsertEvent) => {
+      const res = await apiRequest("POST", "/api/events", data);
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });
       onOpenChange(false);
@@ -56,20 +58,55 @@ export default function CreateEventDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const [year, month, day] = formData.date.split("-").map(Number);
-    const [startHour, startMinute] = formData.startTime.split(":").map(Number);
-    const [endHour, endMinute] = formData.endTime.split(":").map(Number);
+    if (!formData.date || !formData.startTime || !formData.endTime) {
+      toast({
+        title: "錯誤",
+        description: "請填寫所有必填欄位",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const startTime = new Date(year, month - 1, day, startHour, startMinute);
-    const endTime = new Date(year, month - 1, day, endHour, endMinute);
-    
-    createMutation.mutate({
-      name: formData.name,
-      startTime,
-      endTime,
-      status: "開放報名",
-      maxParticipants: formData.maxParticipants,
-    });
+    try {
+      const [year, month, day] = formData.date.split("-").map(Number);
+      const [startHour, startMinute] = formData.startTime.split(":").map(Number);
+      const [endHour, endMinute] = formData.endTime.split(":").map(Number);
+      
+      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
+        throw new Error("Invalid date or time format");
+      }
+      
+      const startTime = new Date(year, month - 1, day, startHour, startMinute);
+      const endTime = new Date(year, month - 1, day, endHour, endMinute);
+      
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        throw new Error("Invalid date");
+      }
+      
+      if (endTime <= startTime) {
+        toast({
+          title: "錯誤",
+          description: "結束時間必須晚於開始時間",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      createMutation.mutate({
+        name: formData.name,
+        startTime,
+        endTime,
+        status: "開放報名",
+        maxParticipants: formData.maxParticipants,
+      });
+    } catch (error) {
+      console.error("Error parsing date/time:", error, formData);
+      toast({
+        title: "錯誤",
+        description: "日期或時間格式不正確",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

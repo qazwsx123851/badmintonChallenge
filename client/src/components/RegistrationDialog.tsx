@@ -35,8 +35,10 @@ export default function RegistrationDialog({
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: InsertRegistration) => 
-      apiRequest<Registration>("/api/registrations", { method: "POST", body: data }),
+    mutationFn: async (data: InsertRegistration) => {
+      const res = await apiRequest("POST", "/api/registrations", data);
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/registrations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/events"] });

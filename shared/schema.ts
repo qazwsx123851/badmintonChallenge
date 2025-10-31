@@ -55,9 +55,14 @@ export const matches = pgTable("matches", {
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertTeamSchema = createInsertSchema(teams).omit({ id: true });
 export const insertCourtSchema = createInsertSchema(courts).omit({ id: true });
-export const insertEventSchema = createInsertSchema(events).omit({ id: true });
+export const insertEventSchema = createInsertSchema(events).omit({ id: true }).extend({
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date(),
+});
 export const insertRegistrationSchema = createInsertSchema(registrations).omit({ id: true, registeredAt: true });
-export const insertMatchSchema = createInsertSchema(matches).omit({ id: true });
+export const insertMatchSchema = createInsertSchema(matches).omit({ id: true }).extend({
+  startTime: z.coerce.date(),
+});
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

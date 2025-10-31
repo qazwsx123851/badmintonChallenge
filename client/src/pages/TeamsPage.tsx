@@ -20,8 +20,10 @@ export default function TeamsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: InsertTeam) => 
-      apiRequest<Team>("/api/teams", { method: "POST", body: data }),
+    mutationFn: async (data: InsertTeam) => {
+      const res = await apiRequest("POST", "/api/teams", data);
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/teams"] });
       setCreateDialogOpen(false);

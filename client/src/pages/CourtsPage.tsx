@@ -20,8 +20,10 @@ export default function CourtsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: InsertCourt) => 
-      apiRequest<Court>("/api/courts", { method: "POST", body: data }),
+    mutationFn: async (data: InsertCourt) => {
+      const res = await apiRequest("POST", "/api/courts", data);
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/courts"] });
       setCreateDialogOpen(false);

@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Event, Match, Court } from "@shared/schema";
 
 export default function MatchesPage() {
-  const [selectedEvent, setSelectedEvent] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState("all");
 
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
@@ -21,7 +21,7 @@ export default function MatchesPage() {
     queryKey: ["/api/courts"],
   });
 
-  const matches = selectedEvent 
+  const matches = selectedEvent && selectedEvent !== "all"
     ? allMatches?.filter(m => m.eventId === selectedEvent) 
     : allMatches;
 
@@ -74,7 +74,7 @@ export default function MatchesPage() {
                   <SelectValue placeholder="顯示所有活動的賽程" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="">所有活動</SelectItem>
+                  <SelectItem value="all">所有活動</SelectItem>
                   {events?.map((event) => (
                     <SelectItem key={event.id} value={event.id}>
                       {event.name}
@@ -107,7 +107,7 @@ export default function MatchesPage() {
               <Trophy className="w-12 h-12 text-muted-foreground" />
             </div>
             <p className="text-xl text-muted-foreground font-medium">
-              {selectedEvent ? "此活動尚未安排賽程" : "尚未有任何賽程"}
+              {selectedEvent && selectedEvent !== "all" ? "此活動尚未安排賽程" : "尚未有任何賽程"}
             </p>
             <p className="text-muted-foreground mt-2">
               請在管理後台進行自動分配

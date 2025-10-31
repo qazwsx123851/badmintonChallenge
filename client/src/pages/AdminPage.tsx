@@ -25,8 +25,10 @@ export default function AdminPage() {
   const inProgressMatches = matches?.filter(m => m.status === "in_progress").length || 0;
 
   const allocateMutation = useMutation({
-    mutationFn: async (eventId: string) => 
-      apiRequest(`/api/events/${eventId}/allocate`, { method: "POST" }),
+    mutationFn: async (eventId: string) => {
+      const res = await apiRequest("POST", `/api/events/${eventId}/allocate`);
+      return res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/matches"] });
       setSelectedEventForAllocation("");
