@@ -22,7 +22,7 @@ export default function CourtCard({
   onEdit,
 }: CourtCardProps) {
   return (
-    <Card className={`p-6 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl border-0 ${
+    <Card className={`p-6 shadow-lg rounded-2xl border-0 card-hover fade-in ${
       isAvailable ? 'border-t-4 border-t-accent' : 'border-t-4 border-t-secondary'
     }`}>
       <div className="flex flex-col gap-4">

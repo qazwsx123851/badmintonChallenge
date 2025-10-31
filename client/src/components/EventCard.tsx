@@ -29,7 +29,7 @@ export default function EventCard({
   const isFull = maxParticipants ? currentRegistrations >= maxParticipants : false;
 
   return (
-    <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-2xl border-0">
+    <Card className="overflow-hidden shadow-lg rounded-2xl border-0 card-hover fade-in">
       <div className="h-2 bg-gradient-to-r from-primary via-secondary to-accent"></div>
       <div className="p-6">
         <div className="flex flex-col gap-4">

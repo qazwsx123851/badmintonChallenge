@@ -2,11 +2,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Event, InsertEvent } from "@shared/schema";
+import { cn } from "@/lib/utils";
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -19,10 +22,17 @@ export default function CreateEventDialog({
 }: CreateEventDialogProps) {
   const [formData, setFormData] = useState({
     name: "",
-    date: "",
+    date: undefined as Date | undefined,
     startTime: "",
     endTime: "",
     maxParticipants: 20,
+  });
+  const [errors, setErrors] = useState({
+    name: false,
+    date: false,
+    startTime: false,
+    endTime: false,
+    maxParticipants: false,
   });
   const { toast } = useToast();
 
@@ -36,10 +46,17 @@ export default function CreateEventDialog({
       onOpenChange(false);
       setFormData({
         name: "",
-        date: "",
+        date: undefined,
         startTime: "",
         endTime: "",
         maxParticipants: 20,
+      });
+      setErrors({
+        name: false,
+        date: false,
+        startTime: false,
+        endTime: false,
+        maxParticipants: false,
       });
       toast({
         title: "成功",
@@ -55,10 +72,23 @@ export default function CreateEventDialog({
     },
   });
 
+  const validateForm = () => {
+    const newErrors = {
+      name: !formData.name.trim(),
+      date: !formData.date,
+      startTime: !formData.startTime,
+      endTime: !formData.endTime,
+      maxParticipants: formData.maxParticipants < 1,
+    };
+    
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.date || !formData.startTime || !formData.endTime) {
+    if (!validateForm()) {
       toast({
         title: "錯誤",
         description: "請填寫所有必填欄位",
@@ -68,20 +98,20 @@ export default function CreateEventDialog({
     }
     
     try {
-      const [year, month, day] = formData.date.split("-").map(Number);
+      if (!formData.date) return;
+      
       const [startHour, startMinute] = formData.startTime.split(":").map(Number);
       const [endHour, endMinute] = formData.endTime.split(":").map(Number);
       
-      if (isNaN(year) || isNaN(month) || isNaN(day) || isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
-        throw new Error("Invalid date or time format");
+      if (isNaN(startHour) || isNaN(startMinute) || isNaN(endHour) || isNaN(endMinute)) {
+        throw new Error("Invalid time format");
       }
       
-      const startTime = new Date(year, month - 1, day, startHour, startMinute);
-      const endTime = new Date(year, month - 1, day, endHour, endMinute);
+      const startTime = new Date(formData.date);
+      startTime.setHours(startHour, startMinute, 0, 0);
       
-      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-        throw new Error("Invalid date");
-      }
+      const endTime = new Date(formData.date);
+      endTime.setHours(endHour, endMinute, 0, 0);
       
       if (endTime <= startTime) {
         toast({
@@ -116,73 +146,108 @@ export default function CreateEventDialog({
           <DialogTitle className="text-2xl">建立新活動</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="eventName">活動名稱</Label>
+            <Label htmlFor="eventName" className="text-base">
+              活動名稱 <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="eventName"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                setErrors({ ...errors, name: false });
+              }}
               placeholder="例如：週五夜間歡樂場"
-              required
-              className="h-12 rounded-xl"
+              className={cn(
+                "h-12 rounded-xl transition-all",
+                errors.name && "border-red-500 border-2 focus-visible:ring-red-500"
+              )}
               data-testid="input-event-name"
             />
+            {errors.name && (
+              <p className="text-sm text-red-500">請輸入活動名稱</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="eventDate">活動日期</Label>
-            <Input
-              id="eventDate"
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
-              className="h-12 rounded-xl"
-              data-testid="input-event-date"
+            <Label className="text-base">
+              活動日期 <span className="text-red-500">*</span>
+            </Label>
+            <DatePicker
+              date={formData.date}
+              onSelect={(date) => {
+                setFormData({ ...formData, date });
+                setErrors({ ...errors, date: false });
+              }}
+              placeholder="選擇活動日期"
+              error={errors.date}
             />
+            {errors.date && (
+              <p className="text-sm text-red-500">請選擇活動日期</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startTime">開始時間</Label>
-              <Input
-                id="startTime"
-                type="time"
+              <Label className="text-base">
+                開始時間 <span className="text-red-500">*</span>
+              </Label>
+              <TimePicker
                 value={formData.startTime}
-                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                required
-                className="h-12 rounded-xl"
-                data-testid="input-start-time"
+                onChange={(time) => {
+                  setFormData({ ...formData, startTime: time });
+                  setErrors({ ...errors, startTime: false });
+                }}
+                placeholder="選擇開始時間"
+                error={errors.startTime}
               />
+              {errors.startTime && (
+                <p className="text-sm text-red-500">請選擇開始時間</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="endTime">結束時間</Label>
-              <Input
-                id="endTime"
-                type="time"
+              <Label className="text-base">
+                結束時間 <span className="text-red-500">*</span>
+              </Label>
+              <TimePicker
                 value={formData.endTime}
-                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                required
-                className="h-12 rounded-xl"
-                data-testid="input-end-time"
+                onChange={(time) => {
+                  setFormData({ ...formData, endTime: time });
+                  setErrors({ ...errors, endTime: false });
+                }}
+                placeholder="選擇結束時間"
+                error={errors.endTime}
               />
+              {errors.endTime && (
+                <p className="text-sm text-red-500">請選擇結束時間</p>
+              )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="maxParticipants">人數上限</Label>
+            <Label htmlFor="maxParticipants" className="text-base">
+              人數上限 <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="maxParticipants"
               type="number"
               min="1"
               value={formData.maxParticipants}
-              onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
-              required
-              className="h-12 rounded-xl"
+              onChange={(e) => {
+                setFormData({ ...formData, maxParticipants: parseInt(e.target.value) || 0 });
+                setErrors({ ...errors, maxParticipants: false });
+              }}
+              className={cn(
+                "h-12 rounded-xl transition-all",
+                errors.maxParticipants && "border-red-500 border-2 focus-visible:ring-red-500"
+              )}
               data-testid="input-max-participants"
             />
+            {errors.maxParticipants && (
+              <p className="text-sm text-red-500">請輸入有效的人數上限</p>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">

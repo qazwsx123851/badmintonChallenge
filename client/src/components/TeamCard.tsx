@@ -23,7 +23,7 @@ export default function TeamCard({
   onView,
 }: TeamCardProps) {
   return (
-    <Card className="p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-2xl border-0">
+    <Card className="p-6 shadow-lg rounded-2xl border-0 card-hover fade-in">
       <div className="flex items-start gap-4">
         <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0 shadow-md">
           <Users className="w-10 h-10 text-white" />

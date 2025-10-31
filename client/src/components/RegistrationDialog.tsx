@@ -10,6 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Team, InsertRegistration, Registration } from "@shared/schema";
+import { cn } from "@/lib/utils";
 
 interface RegistrationDialogProps {
   open: boolean;
@@ -27,6 +28,10 @@ export default function RegistrationDialog({
   const [type, setType] = useState<"individual" | "team">("individual");
   const [userName, setUserName] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
+  const [errors, setErrors] = useState({
+    userName: false,
+    team: false,
+  });
   const { toast } = useToast();
 
   const { data: teams } = useQuery<Team[]>({
@@ -45,6 +50,7 @@ export default function RegistrationDialog({
       onOpenChange(false);
       setUserName("");
       setSelectedTeam("");
+      setErrors({ userName: false, team: false });
       toast({
         title: "報名成功",
         description: "您已成功報名此活動",
@@ -59,8 +65,27 @@ export default function RegistrationDialog({
     },
   });
 
+  const validateForm = () => {
+    const newErrors = {
+      userName: type === "individual" && !userName.trim(),
+      team: type === "team" && !selectedTeam,
+    };
+    
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "錯誤",
+        description: "請填寫所有必填欄位",
+        variant: "destructive",
+      });
+      return;
+    }
     
     const registrationData: InsertRegistration = {
       eventId,
@@ -110,22 +135,46 @@ export default function RegistrationDialog({
 
           {type === "individual" ? (
             <div className="space-y-2">
-              <Label htmlFor="userName">您的姓名</Label>
+              <Label htmlFor="userName" className="text-base">
+                您的姓名 <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="userName"
                 value={userName}
-                onChange={(e) => setUserName(e.target.value)}
+                onChange={(e) => {
+                  setUserName(e.target.value);
+                  setErrors({ ...errors, userName: false });
+                }}
                 placeholder="請輸入您的姓名"
-                required
-                className="h-12 rounded-xl"
+                className={cn(
+                  "h-12 rounded-xl transition-all",
+                  errors.userName && "border-red-500 border-2 focus-visible:ring-red-500"
+                )}
                 data-testid="input-username"
               />
+              {errors.userName && (
+                <p className="text-sm text-red-500">請輸入您的姓名</p>
+              )}
             </div>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="team">選擇團隊</Label>
-              <Select value={selectedTeam} onValueChange={setSelectedTeam} required>
-                <SelectTrigger className="h-12 rounded-xl" data-testid="select-team">
+              <Label htmlFor="team" className="text-base">
+                選擇團隊 <span className="text-red-500">*</span>
+              </Label>
+              <Select 
+                value={selectedTeam} 
+                onValueChange={(value) => {
+                  setSelectedTeam(value);
+                  setErrors({ ...errors, team: false });
+                }}
+              >
+                <SelectTrigger 
+                  className={cn(
+                    "h-12 rounded-xl transition-all",
+                    errors.team && "border-red-500 border-2 focus-visible:ring-red-500"
+                  )}
+                  data-testid="select-team"
+                >
                   <SelectValue placeholder="請選擇團隊" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -136,6 +185,9 @@ export default function RegistrationDialog({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.team && (
+                <p className="text-sm text-red-500">請選擇一個團隊</p>
+              )}
             </div>
           )}
 
