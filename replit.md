@@ -6,6 +6,28 @@ A comprehensive badminton court booking and tournament management system built w
 
 ## Recent Changes
 
+### 2025-10-31: Business Rules Enforcement & Match Allocation Improvements
+- **Schema-level validation**: Enforced team size limit (max 2: captain + 1 member), registration type validation, court capacity limit (max 10 people)
+- **Capacity management**: Implemented real-time event capacity checking during registration
+  - Individual registration = 1 person
+  - Team registration = 2 people (captain + member)
+  - Registration blocked when event reaches maxParticipants
+- **Enhanced allocation algorithm**: Rebuilt auto-allocation to distinguish singles (1v1) vs doubles (2v2)
+  - Respects 10-person court capacity limit
+  - Distributes matches across 30-minute time slots
+  - Fair court rotation for participants
+- **Improved registration UX**:
+  - Real-time capacity progress bar showing "X / Y participants" with percentage
+  - Registration type selection (individual vs team)
+  - Clear error messages when events are full
+  - "已額滿" (Full) button state when capacity reached
+- **Fixed critical display bug**: Match schedule now shows participant names instead of IDs
+  - Maps team IDs to team names with "（雙打）" indicator
+  - Maps individual registrations to participant names
+  - Falls back to truncated ID if name lookup fails
+- **Enhanced admin feedback**: Allocation mutation now shows detailed success/error messages with match count
+- **E2E testing**: Verified complete flow from event creation → mixed registrations → allocation → schedule viewing
+
 ### 2025-10-31: Bootstrap Date/Time Picker Integration
 - **Replaced custom date/time pickers** with `react-datepicker` for better Bootstrap compatibility
 - **New components**: `BootstrapDatePicker` and `BootstrapTimePicker` in `client/src/components/ui/`
