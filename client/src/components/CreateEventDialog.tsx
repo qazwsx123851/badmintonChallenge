@@ -141,7 +141,7 @@ export default function CreateEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent data-testid="dialog-create-event" className="rounded-2xl">
+      <DialogContent data-testid="dialog-create-event" className="rounded-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl">建立新活動</DialogTitle>
         </DialogHeader>
