@@ -53,15 +53,39 @@ export const matches = pgTable("matches", {
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
-export const insertTeamSchema = createInsertSchema(teams).omit({ id: true });
+
+export const insertTeamSchema = createInsertSchema(teams).omit({ id: true }).extend({
+  memberIds: z.array(z.string()).max(1, "團隊最多只能有1位隊員（隊長+1位隊員=2人）"),
+});
+
 export const insertCourtSchema = createInsertSchema(courts).omit({ id: true });
+
 export const insertEventSchema = createInsertSchema(events).omit({ id: true }).extend({
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
+  maxParticipants: z.number().min(1, "人數上限至少為1人").max(100, "人數上限不可超過100人"),
 });
-export const insertRegistrationSchema = createInsertSchema(registrations).omit({ id: true, registeredAt: true });
+
+export const insertRegistrationSchema = createInsertSchema(registrations).omit({ id: true, registeredAt: true }).extend({
+  type: z.enum(["individual", "team"], { 
+    errorMap: () => ({ message: "報名類型必須為 individual 或 team" })
+  }),
+}).refine(
+  (data) => {
+    if (data.type === "individual") {
+      return !!data.userId || !!data.participantName;
+    } else {
+      return !!data.teamId;
+    }
+  },
+  {
+    message: "個人報名需提供 userId 或 participantName，團隊報名需提供 teamId"
+  }
+);
+
 export const insertMatchSchema = createInsertSchema(matches).omit({ id: true }).extend({
   startTime: z.coerce.date(),
+  participantIds: z.array(z.string()).min(2, "比賽至少需要2位參與者").max(10, "單一場地最多容納10位參與者"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
