@@ -56,12 +56,16 @@ export default function MatchesPage() {
 
   const transformedMatches = matches?.map(match => {
     const court = courts?.find(c => c.id === match.courtId);
+    const event = events?.find(e => e.id === match.eventId);
     const startTime = new Date(match.startTime);
     const endTime = new Date(startTime.getTime() + 30 * 60 * 1000);
     const participantNames = getParticipantNames(match.participantIds);
     
+    const matchType = match.participantIds.length === 4 ? "doubles" : "singles";
+    
     return {
       id: match.id,
+      eventName: event?.name || "未知活動",
       courtName: court?.name || "未知場地",
       timeSlot: `${startTime.toLocaleTimeString('zh-TW', { 
         hour: '2-digit', 
@@ -71,6 +75,7 @@ export default function MatchesPage() {
         minute: '2-digit' 
       })}`,
       participants: participantNames,
+      matchType: matchType as "singles" | "doubles",
       status: match.status as "scheduled" | "in_progress" | "completed",
     };
   }) || [];

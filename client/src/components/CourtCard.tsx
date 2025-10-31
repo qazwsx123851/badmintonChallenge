@@ -1,17 +1,18 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Edit } from "lucide-react";
+import { MapPin, Edit, Trash2 } from "lucide-react";
 
 interface CourtCardProps {
   id: string;
   name: string;
   isAvailable: boolean;
   currentMatch?: {
-    participants: string[];
     time: string;
+    participants: string[];
   };
   onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export default function CourtCard({
@@ -20,6 +21,7 @@ export default function CourtCard({
   isAvailable,
   currentMatch,
   onEdit,
+  onDelete,
 }: CourtCardProps) {
   return (
     <Card className={`p-6 shadow-lg rounded-2xl border-0 card-hover fade-in ${
@@ -53,8 +55,12 @@ export default function CourtCard({
         {currentMatch && !isAvailable && (
           <div className="bg-muted/50 rounded-xl p-4 text-sm">
             <p className="font-bold mb-1 text-secondary">當前賽程</p>
-            <p className="text-foreground font-medium">{currentMatch.participants.join(" vs ")}</p>
-            <p className="text-xs text-muted-foreground mt-2">{currentMatch.time}</p>
+            <p className="text-foreground font-medium">
+              {currentMatch.participants.join(" vs ")}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              {currentMatch.time}
+            </p>
           </div>
         )}
 
@@ -64,16 +70,28 @@ export default function CourtCard({
           </div>
         )}
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="rounded-full"
-          onClick={() => onEdit?.(id)}
-          data-testid={`button-edit-court-${id}`}
-        >
-          <Edit className="w-4 h-4 mr-1" />
-          編輯場地
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 rounded-full"
+            onClick={() => onEdit?.(id)}
+            data-testid={`button-edit-court-${id}`}
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            編輯
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 rounded-full text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+            onClick={() => onDelete?.(id)}
+            data-testid={`button-delete-court-${id}`}
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            刪除
+          </Button>
+        </div>
       </div>
     </Card>
   );

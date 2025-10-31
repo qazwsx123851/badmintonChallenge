@@ -1,11 +1,14 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Users, User } from "lucide-react";
 
 interface Match {
   id: string;
+  eventName: string;
   courtName: string;
   timeSlot: string;
   participants: string[];
+  matchType: "singles" | "doubles";
   status: "scheduled" | "in_progress" | "completed" | "finished";
 }
 
@@ -67,6 +70,19 @@ export default function MatchScheduleTable({
                           className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl p-4 hover:shadow-lg transition-all duration-300 cursor-pointer border border-primary/20"
                           data-testid={`match-${match.id}`}
                         >
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs text-muted-foreground font-medium">{match.eventName}</span>
+                            <Badge 
+                              variant={match.matchType === "doubles" ? "default" : "secondary"}
+                              className="rounded-full text-xs px-2 py-0.5"
+                            >
+                              {match.matchType === "doubles" ? (
+                                <><Users className="w-3 h-3 mr-1 inline" />雙打</>
+                              ) : (
+                                <><User className="w-3 h-3 mr-1 inline" />單打</>
+                              )}
+                            </Badge>
+                          </div>
                           <div className="text-sm font-bold mb-2 text-foreground">
                             {match.participants.join(" vs ")}
                           </div>

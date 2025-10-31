@@ -54,8 +54,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/courts/:id", async (req, res) => {
+    try {
+      const court = await storage.updateCourt(req.params.id, req.body);
+      if (!court) {
+        return res.status(404).json({ error: "Court not found" });
+      }
+      res.json(court);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update court" });
+    }
+  });
+
   app.delete("/api/courts/:id", async (req, res) => {
     try {
+      const allCourts = await storage.getCourts();
+      if (allCourts.length <= 1) {
+        return res.status(400).json({ error: "無法刪除，系統至少需要保留一個場地" });
+      }
+
+      const matches = await storage.getMatches();
+      const courtHasMatches = matches.some(
+        m => m.courtId === req.params.id && m.status === "scheduled"
+      );
+      
+      if (courtHasMatches) {
+        return res.status(400).json({ error: "此場地有已排程的比賽，無法刪除" });
+      }
+
       const success = await storage.deleteCourt(req.params.id);
       if (!success) {
         return res.status(404).json({ error: "Court not found" });

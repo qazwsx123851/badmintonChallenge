@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Users, User, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,13 @@ export default function RegistrationDialog({
     queryKey: ["/api/registrations", { eventId }],
     enabled: open,
   });
+
+  useEffect(() => {
+    if (open) {
+      queryClient.invalidateQueries({ queryKey: ["/api/registrations", { eventId }] });
+      queryClient.invalidateQueries({ queryKey: ["/api/events"] });
+    }
+  }, [open, eventId]);
 
   const currentCount = registrations.reduce((acc, reg) => {
     return acc + (reg.type === "team" ? 2 : 1);

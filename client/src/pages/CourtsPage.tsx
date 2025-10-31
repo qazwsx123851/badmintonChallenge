@@ -2,21 +2,36 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import CourtCard from "@/components/CourtCard";
+import EditCourtDialog from "@/components/EditCourtDialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { Court, InsertCourt } from "@shared/schema";
+import type { Court, InsertCourt, Match, Team, Registration } from "@shared/schema";
 
 export default function CourtsPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
   const [courtName, setCourtName] = useState("");
   const { toast } = useToast();
 
   const { data: courts, isLoading } = useQuery<Court[]>({
     queryKey: ["/api/courts"],
+  });
+
+  const { data: matches } = useQuery<Match[]>({
+    queryKey: ["/api/matches"],
+  });
+
+  const { data: teams } = useQuery<Team[]>({
+    queryKey: ["/api/teams"],
+  });
+
+  const { data: registrations } = useQuery<Registration[]>({
+    queryKey: ["/api/registrations"],
   });
 
   const createMutation = useMutation({
@@ -29,14 +44,39 @@ export default function CourtsPage() {
       setCreateDialogOpen(false);
       setCourtName("");
       toast({
-        title: "成功",
+        title: "✅ 建立成功",
         description: "場地已成功建立",
       });
     },
     onError: () => {
       toast({
-        title: "錯誤",
+        title: "❌ 建立失敗",
         description: "建立場地失敗",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await apiRequest("DELETE", `/api/courts/${id}`);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "刪除失敗");
+      }
+      return res;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/courts"] });
+      toast({
+        title: "✅ 刪除成功",
+        description: "場地已成功刪除",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "❌ 刪除失敗",
+        description: error.message || "刪除場地失敗",
         variant: "destructive",
       });
     },
@@ -45,6 +85,37 @@ export default function CourtsPage() {
   const handleCreateCourt = (e: React.FormEvent) => {
     e.preventDefault();
     createMutation.mutate({ name: courtName, isAvailable: true });
+  };
+
+  const handleEditCourt = (id: string) => {
+    const court = courts?.find(c => c.id === id);
+    if (court) {
+      setSelectedCourt(court);
+      setEditDialogOpen(true);
+    }
+  };
+
+  const handleDeleteCourt = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  const getParticipantNames = (participantIds: string[]) => {
+    return participantIds.slice(0, 2).map(id => {
+      const team = teams?.find(t => t.id === id);
+      if (team) {
+        return team.name;
+      }
+      
+      const registration = registrations?.find(r => 
+        r.userId === id || r.teamId === id
+      );
+      
+      if (registration?.participantName) {
+        return registration.participantName;
+      }
+      
+      return id.substring(0, 8) + "...";
+    });
   };
 
   return (
@@ -81,13 +152,29 @@ export default function CourtsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {courts?.map((court) => (
-              <CourtCard
-                key={court.id}
-                {...court}
-                onEdit={(id) => console.log("Edit court:", id)}
-              />
-            ))}
+            {courts?.map((court) => {
+              const courtMatches = matches?.filter(m => 
+                m.courtId === court.id && m.status === "in_progress"
+              ) || [];
+              
+              const currentMatch = courtMatches.length > 0 ? {
+                time: new Date(courtMatches[0].startTime).toLocaleTimeString('zh-TW', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }),
+                participants: getParticipantNames(courtMatches[0].participantIds)
+              } : undefined;
+              
+              return (
+                <CourtCard
+                  key={court.id}
+                  {...court}
+                  currentMatch={currentMatch}
+                  onEdit={handleEditCourt}
+                  onDelete={handleDeleteCourt}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -133,6 +220,12 @@ export default function CourtsPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <EditCourtDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        court={selectedCourt}
+      />
     </div>
   );
 }
