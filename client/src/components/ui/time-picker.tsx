@@ -26,18 +26,54 @@ export function TimePicker({
   error = false,
 }: TimePickerProps) {
   const [open, setOpen] = useState(false);
+  const [tempHour, setTempHour] = useState<number | null>(null);
+  const [tempMinute, setTempMinute] = useState<number | null>(null);
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = [0, 15, 30, 45];
 
-  const handleTimeSelect = (hour: number, minute: number) => {
-    const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+  // 解析當前值
+  const currentHour = value ? parseInt(value.split(':')[0]) : null;
+  const currentMinute = value ? parseInt(value.split(':')[1]) : null;
+
+  // 顯示的小時和分鐘（暫時選擇 > 當前值）
+  const displayHour = tempHour ?? currentHour;
+  const displayMinute = tempMinute ?? currentMinute;
+
+  // 當彈窗打開時，初始化暫時值
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (newOpen) {
+      // 打開時，使用當前值初始化暫時值
+      setTempHour(currentHour);
+      setTempMinute(currentMinute);
+    } else {
+      // 關閉時清空暫時值
+      setTempHour(null);
+      setTempMinute(null);
+    }
+  };
+
+  const handleHourSelect = (hour: number) => {
+    setTempHour(hour);
+  };
+
+  const handleMinuteSelect = (minute: number) => {
+    setTempMinute(minute);
+    
+    // 選擇完分鐘後，組合完整時間並提交
+    const finalHour = tempHour ?? currentHour ?? 0;
+    const timeString = `${finalHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     onChange(timeString);
+    
+    // 關閉彈窗
     setOpen(false);
+    setTempHour(null);
+    setTempMinute(null);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -66,12 +102,9 @@ export function TimePicker({
                   size="sm"
                   className={cn(
                     "w-full justify-center",
-                    value?.startsWith(hour.toString().padStart(2, '0')) && "bg-accent"
+                    displayHour === hour && "bg-accent"
                   )}
-                  onClick={() => {
-                    const currentMinute = value ? parseInt(value.split(':')[1]) : 0;
-                    handleTimeSelect(hour, currentMinute);
-                  }}
+                  onClick={() => handleHourSelect(hour)}
                 >
                   {hour.toString().padStart(2, '0')}
                 </Button>
@@ -88,12 +121,9 @@ export function TimePicker({
                   size="sm"
                   className={cn(
                     "w-full justify-center",
-                    value?.endsWith(minute.toString().padStart(2, '0')) && "bg-accent"
+                    displayMinute === minute && "bg-accent"
                   )}
-                  onClick={() => {
-                    const currentHour = value ? parseInt(value.split(':')[0]) : 0;
-                    handleTimeSelect(currentHour, minute);
-                  }}
+                  onClick={() => handleMinuteSelect(minute)}
                 >
                   {minute.toString().padStart(2, '0')}
                 </Button>
