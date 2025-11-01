@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Menu, Trophy, User } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "\u6d3b\u52d5\u5217\u8868", testId: "link-events" },
-  { href: "/teams", label: "\u7403\u968a\u7ba1\u7406", testId: "link-teams" },
-  { href: "/courts", label: "\u5834\u5730\u7ba1\u7406", testId: "link-courts" },
-  { href: "/matches", label: "\u8cfd\u7a0b\u8868", testId: "link-matches" },
-  { href: "/admin", label: "\u5f8c\u53f0\u7ba1\u7406", testId: "link-admin" },
+  { href: "/", label: "活動列表", testId: "link-events" },
+  { href: "/teams", label: "球隊管理", testId: "link-teams" },
+  { href: "/courts", label: "場地管理", testId: "link-courts" },
+  { href: "/matches", label: "賽程表", testId: "link-matches" },
+  { href: "/admin", label: "後台管理", testId: "link-admin" },
 ];
 
 export default function Navbar() {
@@ -54,7 +54,7 @@ export default function Navbar() {
             >
               <Trophy className="w-7 h-7 text-primary" />
               <span className="text-[clamp(1.1rem,2vw,1.4rem)] font-semibold tracking-wide">
-                \u7fbd\u7403\u8cfd\u4e8b
+                羽球賽事
               </span>
             </Link>
 

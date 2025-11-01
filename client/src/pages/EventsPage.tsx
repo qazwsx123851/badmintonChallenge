@@ -24,24 +24,24 @@ const FILTER_CONFIG: Record<
   { label: string; icon: React.ReactNode; predicate: (event: Event) => boolean }
 > = {
   all: {
-    label: "\u5168\u90e8",
+    label: "全部",
     icon: <Sparkles className="w-4 h-4" />,
     predicate: () => true,
   },
   upcoming: {
-    label: "\u5373\u5c07\u958b\u59cb",
+    label: "即將開始",
     icon: <Rocket className="w-4 h-4" />,
     predicate: (event) => new Date(event.startTime) > new Date(),
   },
   opened: {
-    label: "\u958b\u653e\u5831\u540d",
+    label: "開放報名",
     icon: <Flame className="w-4 h-4" />,
-    predicate: (event) => event.status === "\u958b\u653e\u5831\u540d",
+    predicate: (event) => event.status === "開放報名",
   },
   closed: {
-    label: "\u5df2\u7d50\u675f",
+    label: "已結束",
     icon: <Clock className="w-4 h-4" />,
-    predicate: (event) => event.status !== "\u958b\u653e\u5831\u540d",
+    predicate: (event) => event.status !== "開放報名",
   },
 };
 
@@ -96,8 +96,8 @@ export default function EventsPage() {
 
   return (
     <PageLayout
-      title="\u6d3b\u52d5\u5217\u8868"
-      subtitle="\u5373\u6642\u638c\u63e1\u7fbd\u7403\u6d3b\u52d5\u3001\u5831\u540d\u72c0\u614b\u8207\u8cfd\u4e8b\u71b1\u5ea6\uff0c\u6311\u9078\u6700\u9069\u5408\u4f60\u7684\u6311\u6230\u3002"
+      title="活動列表"
+      subtitle="即時掌握羽球活動、報名狀態與賽事熱度，挑選最適合你的挑戰。"
       heroIcon={<Calendar className="w-9 h-9 text-white" />}
       actionSlot={
         <div className="flex items-center gap-3 flex-wrap justify-end">
@@ -123,7 +123,7 @@ export default function EventsPage() {
             <div className="relative max-w-xl">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
-                placeholder="\u641c\u5c0b\u6d3b\u52d5..."
+                placeholder="搜尋活動..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 className="pl-12 h-14 rounded-full border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:ring-primary/60"
@@ -224,7 +224,7 @@ export default function EventsPage() {
               <Calendar className="w-12 h-12 text-slate-400" />
             </div>
             <p className="text-xl text-slate-600 font-medium">
-              {events?.length === 0 ? "\u76ee\u524d\u6c92\u6709\u6d3b\u52d5" : "\u6c92\u6709\u627e\u5230\u7b26\u5408\u7684\u6d3b\u52d5"}
+              {events?.length === 0 ? "目前沒有活動" : "沒有找到符合的活動"}
             </p>
           </motion.div>
         )}

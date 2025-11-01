@@ -35,7 +35,7 @@ export default function EventCard({
   maxParticipants,
   onRegister,
 }: EventCardProps) {
-  const isOpen = status === "\u958b\u653e\u5831\u540d";
+  const isOpen = status === "開放報名";
   const isFull =
     maxParticipants !== undefined && currentRegistrations >= maxParticipants;
   const progress =
@@ -61,7 +61,7 @@ export default function EventCard({
                 "rounded-full px-4 py-1 text-xs tracking-widest uppercase",
                 isOpen
                   ? "bg-primary text-white shadow-[0_12px_30px_-18px_rgba(37,99,235,0.55)]"
-                  : "bg-slate-100 text-slate-600"
+                  : "bg-slate-100 text-slate-600",
               )}
               data-testid={`badge-status-${id}`}
             >
@@ -97,7 +97,7 @@ export default function EventCard({
                 {maxParticipants !== undefined
                   ? ` / ${maxParticipants}`
                   : ""}{" "}
-                \u4eba\u5831\u540d
+                人報名
               </span>
               {maxParticipants !== undefined && (
                 <span
@@ -125,7 +125,7 @@ export default function EventCard({
             )}
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              \u6700\u65b0\u8cfd\u7a0b\u8cc7\u8a0a\u6703\u540c\u6b65\u5bc4\u9001\u81f3\u53c3\u8cfd\u8005\u4fe1\u7bb1\uff0c\u8acb\u5728\u5831\u540d\u5f8c\u7559\u610f\u901a\u77e5\u3002
+              最新賽程資訊會同步寄送至參賽者信箱，請在報名後留意通知。
             </p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function EventCard({
               onClick={() => onRegister?.(id)}
               data-testid={`button-register-${id}`}
             >
-              {isFull ? "\u540d\u984d\u5df2\u6eff" : "\u7acb\u5373\u5831\u540d"}
+              {isFull ? "名額已滿" : "立即報名"}
             </Button>
             <Button
               variant="outline"
@@ -146,7 +146,7 @@ export default function EventCard({
               data-testid={`button-details-${id}`}
             >
               <Info className="w-4 h-4 mr-2" />
-              \u6d3b\u52d5\u8a73\u60c5
+              活動詳情
             </Button>
           </div>
           <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function EventCard({
               data-testid={`button-calendar-${id}`}
             >
               <CalendarPlus className="w-4 h-4" />
-              \u52a0\u5165\u884c\u4e8b\u66c6
+              加入行事曆
             </Button>
             <Button
               variant="ghost"
@@ -164,7 +164,7 @@ export default function EventCard({
               data-testid={`button-share-${id}`}
             >
               <Share2 className="w-4 h-4" />
-              \u5206\u4eab\u6d3b\u52d5
+              分享活動
             </Button>
           </div>
         </footer>
