@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Menu, Trophy, User } from "lucide-react";
 
 const NAV_ITEMS = [
-  { href: "/", label: "活動列表", testId: "link-events" },
-  { href: "/teams", label: "球隊管理", testId: "link-teams" },
-  { href: "/courts", label: "場地管理", testId: "link-courts" },
-  { href: "/matches", label: "賽程表", testId: "link-matches" },
-  { href: "/admin", label: "後台管理", testId: "link-admin" },
+  { href: "/", label: "\u6d3b\u52d5\u5217\u8868", testId: "link-events" },
+  { href: "/teams", label: "\u7403\u968a\u7ba1\u7406", testId: "link-teams" },
+  { href: "/courts", label: "\u5834\u5730\u7ba1\u7406", testId: "link-courts" },
+  { href: "/matches", label: "\u8cfd\u7a0b\u8868", testId: "link-matches" },
+  { href: "/admin", label: "\u5f8c\u53f0\u7ba1\u7406", testId: "link-admin" },
 ];
 
 export default function Navbar() {
@@ -29,7 +29,7 @@ export default function Navbar() {
   }, [scrollY]);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 text-slate-900 dark:text-white font-medium transition-colors">
+    <nav className="fixed top-0 left-0 right-0 z-50 font-medium text-slate-900 transition-colors">
       <motion.div
         style={{ scaleX: progress }}
         className="origin-left h-0.5 bg-primary/70"
@@ -38,25 +38,23 @@ export default function Navbar() {
       <div
         className={`transition-all duration-300 ${
           scrolled
-            ? "glass-surface shadow-2xl border border-white/10 backdrop-blur-xl"
-            : "backdrop-blur-xl bg-white/70 text-slate-900 shadow-lg border border-white/80 dark:bg-neutral-900/80 dark:text-white transition-colors"
+            ? "bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-[0_14px_36px_-24px_rgba(15,23,42,0.25)]"
+            : "bg-white/75 backdrop-blur-lg border-b border-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="flex items-center justify-between h-16"
-            style={{
-              scale: scrolled ? 0.96 : 1,
-            }}
+            style={{ scale: scrolled ? 0.98 : 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <Link
               href="/"
-              className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/10 transition-colors dark:hover:bg-white/10"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors"
             >
-              <Trophy className="w-7 h-7" />
+              <Trophy className="w-7 h-7 text-primary" />
               <span className="text-[clamp(1.1rem,2vw,1.4rem)] font-semibold tracking-wide">
-                羽球賽事
+                \u7fbd\u7403\u8cfd\u4e8b
               </span>
             </Link>
 
@@ -65,18 +63,18 @@ export default function Navbar() {
                 <Link href={item.href} key={item.href}>
                   <Button
                     variant="ghost"
-                    className="text-current hover:bg-white/12 dark:text-white dark:hover:bg-white/10"
+                    className="text-slate-700 hover:text-slate-900 hover:bg-slate-100"
                     data-testid={item.testId}
                   >
                     {item.label}
                   </Button>
                 </Link>
               ))}
-              <div className="ml-2">
+              <div className="ml-3">
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="rounded-full"
+                  className="rounded-full bg-primary text-white hover:bg-primary/90 shadow-sm"
                   data-testid="button-profile"
                 >
                   <User className="w-4 h-4" />
@@ -87,7 +85,7 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden text-primary-foreground hover:bg-white/10"
+              className="md:hidden text-slate-700 hover:bg-slate-100"
               onClick={() => setMobileMenuOpen((open) => !open)}
               data-testid="button-menu"
             >
@@ -102,13 +100,13 @@ export default function Navbar() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
-          className="md:hidden py-4 space-y-2 glass-surface border border-white/10 mx-4 mt-2 rounded-2xl px-2"
+          className="md:hidden py-4 space-y-2 bg-white/95 border border-slate-200 mx-4 mt-2 rounded-2xl px-2 shadow-lg backdrop-blur-lg"
         >
           {NAV_ITEMS.map((item) => (
             <Link href={item.href} key={`mobile-${item.href}`}>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-primary-foreground hover:bg-white/10"
+                className="w-full justify-start text-slate-700 hover:bg-slate-100"
                 data-testid={`${item.testId}-mobile`}
               >
                 {item.label}

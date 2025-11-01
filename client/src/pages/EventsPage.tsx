@@ -24,24 +24,24 @@ const FILTER_CONFIG: Record<
   { label: string; icon: React.ReactNode; predicate: (event: Event) => boolean }
 > = {
   all: {
-    label: "全部",
+    label: "\u5168\u90e8",
     icon: <Sparkles className="w-4 h-4" />,
     predicate: () => true,
   },
   upcoming: {
-    label: "即將開始",
+    label: "\u5373\u5c07\u958b\u59cb",
     icon: <Rocket className="w-4 h-4" />,
     predicate: (event) => new Date(event.startTime) > new Date(),
   },
   opened: {
-    label: "開放報名",
+    label: "\u958b\u653e\u5831\u540d",
     icon: <Flame className="w-4 h-4" />,
-    predicate: (event) => event.status === "開放報名",
+    predicate: (event) => event.status === "\u958b\u653e\u5831\u540d",
   },
   closed: {
-    label: "已結束",
+    label: "\u5df2\u7d50\u675f",
     icon: <Clock className="w-4 h-4" />,
-    predicate: (event) => event.status !== "開放報名",
+    predicate: (event) => event.status !== "\u958b\u653e\u5831\u540d",
   },
 };
 
@@ -96,8 +96,8 @@ export default function EventsPage() {
 
   return (
     <PageLayout
-      title="活動列表"
-      subtitle="即時掌握羽球活動、報名狀態與賽事熱度，挑選最適合你的挑戰。"
+      title="\u6d3b\u52d5\u5217\u8868"
+      subtitle="\u5373\u6642\u638c\u63e1\u7fbd\u7403\u6d3b\u52d5\u3001\u5831\u540d\u72c0\u614b\u8207\u8cfd\u4e8b\u71b1\u5ea6\uff0c\u6311\u9078\u6700\u9069\u5408\u4f60\u7684\u6311\u6230\u3002"
       heroIcon={<Calendar className="w-9 h-9 text-white" />}
       actionSlot={
         <div className="flex items-center gap-3 flex-wrap justify-end">
@@ -109,6 +109,7 @@ export default function EventsPage() {
                 active={filter === key}
                 icon={icon}
                 label={label}
+                count={counts[key]}
                 onClick={() => setFilter(key)}
               />
             );
@@ -118,14 +119,14 @@ export default function EventsPage() {
     >
       <div className="space-y-8">
         <div className="sticky top-20 z-30">
-          <div className="blur-overlay px-4 py-4 sm:py-5 sm:px-8 flex flex-col gap-4 shadow-[0_18px_45px_-26px_rgba(15,23,42,0.6)]">
+          <div className="rounded-[28px] bg-white shadow-[0_24px_60px_-30px_rgba(15,23,42,0.25)] border border-slate-200 px-4 py-4 sm:py-5 sm:px-8 flex flex-col gap-4">
             <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/70" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
-                placeholder="搜尋活動..."
+                placeholder="\u641c\u5c0b\u6d3b\u52d5..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                className="pl-12 h-14 rounded-full border border-white/15 bg-white/9 text-white placeholder:text-white/60 focus-visible:ring-primary/60 focus-visible:border-primary/40"
+                className="pl-12 h-14 rounded-full border border-slate-200 bg-white text-slate-800 placeholder:text-slate-400 focus-visible:ring-primary/60"
                 data-testid="input-search-events"
               />
             </div>
@@ -152,7 +153,7 @@ export default function EventsPage() {
             {placeholderCards.map((_, index) => (
               <Skeleton
                 key={index}
-                className="h-72 rounded-3xl bg-white/5 border border-white/10"
+                className="h-72 rounded-3xl bg-slate-100 border border-slate-200"
               />
             ))}
           </div>
@@ -175,8 +176,9 @@ export default function EventsPage() {
             >
               {filteredEvents.map((event) => {
                 const registrationsForEvent =
-                  allRegistrations?.filter((registration) => registration.eventId === event.id) ??
-                  [];
+                  allRegistrations?.filter(
+                    (registration) => registration.eventId === event.id,
+                  ) ?? [];
                 const participantCount = registrationsForEvent.reduce(
                   (acc, registration) =>
                     acc + (registration.type === "team" ? 2 : 1),
@@ -216,13 +218,13 @@ export default function EventsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-20 md-surface md-elevation-1 border border-white/10 rounded-3xl"
+            className="text-center py-20 rounded-3xl bg-white border border-slate-200 shadow-[0_24px_50px_-28px_rgba(15,23,42,0.25)]"
           >
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-white/6 border border-white/10 flex items-center justify-center">
-              <Calendar className="w-12 h-12 text-white/70" />
+            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
+              <Calendar className="w-12 h-12 text-slate-400" />
             </div>
-            <p className="text-xl text-white/82 font-medium">
-              {events?.length === 0 ? "目前沒有活動" : "沒有找到符合的活動"}
+            <p className="text-xl text-slate-600 font-medium">
+              {events?.length === 0 ? "\u76ee\u524d\u6c92\u6709\u6d3b\u52d5" : "\u6c92\u6709\u627e\u5230\u7b26\u5408\u7684\u6d3b\u52d5"}
             </p>
           </motion.div>
         )}

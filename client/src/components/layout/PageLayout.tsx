@@ -35,18 +35,18 @@ export default function PageLayout({
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.4, ease: "easeOut", delay: 0.05 }}
-                  className="flex size-16 sm:size-20 rounded-[28px] bg-gradient-to-br from-primary/90 via-primary/70 to-secondary/80 text-white items-center justify-center shadow-[0_20px_40px_-18px_rgba(124,94,255,0.45)] border border-white/25"
+                  className="flex size-16 sm:size-20 rounded-[28px] bg-gradient-to-br from-primary/90 via-primary/80 to-secondary/70 text-white items-center justify-center shadow-[0_20px_40px_-18px_rgba(37,99,235,0.45)] border border-white/40"
                 >
                   {heroIcon}
                 </motion.div>
               )}
 
               <div className="space-y-2">
-                <h1 className="text-[clamp(2.25rem,4vw,3.5rem)] font-semibold text-white tracking-tight drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)]">
+                <h1 className="text-[clamp(2.25rem,4vw,3.5rem)] font-semibold text-slate-900 tracking-tight">
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="text-base sm:text-lg text-white/78 max-w-2xl leading-relaxed drop-shadow-[0_3px_12px_rgba(0,0,0,0.4)]">
+                  <p className="text-base sm:text-lg text-slate-600 max-w-2xl leading-relaxed">
                     {subtitle}
                   </p>
                 )}
@@ -58,7 +58,7 @@ export default function PageLayout({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.35, ease: "easeOut", delay: 0.1 }}
-                className="flex items-center gap-3 px-3 py-2 rounded-full bg-white/6 border border-white/20 shadow-[0_12px_30px_-16px_rgba(15,23,42,0.45)]"
+                className="flex items-center gap-3 px-3 py-2 rounded-full bg-white/90 border border-slate-200 shadow-[0_12px_30px_-16px_rgba(148,163,184,0.55)]"
               >
                 {actionSlot}
               </motion.div>

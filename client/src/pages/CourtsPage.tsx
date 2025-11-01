@@ -58,14 +58,14 @@ export default function CourtsPage() {
       setCreateDialogOpen(false);
       setCourtName("");
       toast({
-        title: "新增場地成功",
-        description: "球場資料已建立。",
+        title: "\u65b0\u589e\u5834\u5730\u6210\u529f",
+        description: "\u7403\u5834\u8cc7\u6599\u5df2\u5efa\u7acb\u3002",
       });
     },
     onError: () => {
       toast({
-        title: "新增場地失敗",
-        description: "請稍後再試一次。",
+        title: "\u65b0\u589e\u5834\u5730\u5931\u6557",
+        description: "\u8acb\u7a0d\u5f8c\u518d\u8a66\u4e00\u6b21\u3002",
         variant: "destructive",
       });
     },
@@ -76,21 +76,21 @@ export default function CourtsPage() {
       const res = await apiRequest("DELETE", `/api/courts/${id}`);
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.error || "刪除失敗");
+        throw new Error(error.error || "\u522a\u9664\u5931\u6557");
       }
       return res;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/courts"] });
       toast({
-        title: "刪除場地成功",
-        description: "球場已移除。",
+        title: "\u522a\u9664\u5834\u5730\u6210\u529f",
+        description: "\u7403\u5834\u5df2\u79fb\u9664\u3002",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "刪除場地失敗",
-        description: error.message || "系統暫時無法刪除該場地。",
+        title: "\u522a\u9664\u5834\u5730\u5931\u6557",
+        description: error.message || "\u7cfb\u7d71\u66ab\u6642\u7121\u6cd5\u522a\u9664\u8a72\u5834\u5730\u3002",
         variant: "destructive",
       });
     },
@@ -100,8 +100,8 @@ export default function CourtsPage() {
     event.preventDefault();
     if (!courtName.trim()) {
       toast({
-        title: "請輸入場地名稱",
-        description: "場地名稱為必填欄位。",
+        title: "\u8acb\u8f38\u5165\u5834\u5730\u540d\u7a31",
+        description: "\u5834\u5730\u540d\u7a31\u70ba\u5fc5\u586b\u6b04\u4f4d\u3002",
         variant: "destructive",
       });
       return;
@@ -124,9 +124,7 @@ export default function CourtsPage() {
   const getParticipantNames = (participantIds: string[]) => {
     return participantIds.map((id) => {
       const team = teams?.find((item) => item.id === id);
-      if (team) {
-        return team.name;
-      }
+      if (team) return team.name;
 
       const registration = registrations?.find(
         (item) => item.userId === id || item.teamId === id,
@@ -136,7 +134,7 @@ export default function CourtsPage() {
         return registration.participantName;
       }
 
-      return `${id.substring(0, 8)}…`;
+      return `${id.substring(0, 8)}\u2026`;
     });
   };
 
@@ -197,18 +195,18 @@ export default function CourtsPage() {
 
   return (
     <PageLayout
-      title="場地管理"
-      subtitle="即時掌握球場使用率、即將進行的賽事與設備安排，確保營運排程順暢。"
+      title="\u5834\u5730\u7ba1\u7406"
+      subtitle="\u5373\u6642\u638c\u63e1\u7403\u5834\u4f7f\u7528\u7387\u3001\u5373\u5c07\u9032\u884c\u7684\u8cfd\u4e8b\u8207\u8a2d\u5099\u5b89\u6392\uff0c\u78ba\u4fdd\u71df\u904b\u6392\u7a0b\u9806\u66a2\u3002"
       heroIcon={<MapPin className="w-9 h-9 text-white" />}
       actionSlot={
         <Button
           onClick={() => setCreateDialogOpen(true)}
           variant="secondary"
-          className="rounded-full shadow-lg h-14 px-8 font-medium text-base"
+          className="rounded-full h-14 px-8 font-medium text-base bg-primary text-white hover:bg-primary/90 shadow-[0_16px_34px_-16px_rgba(37,99,235,0.4)]"
           data-testid="button-add-court"
         >
           <Plus className="w-5 h-5 mr-2" />
-          新增場地
+          \u65b0\u589e\u5834\u5730
         </Button>
       }
     >
@@ -218,7 +216,7 @@ export default function CourtsPage() {
             {Array.from({ length: 6 }).map((_, index) => (
               <Skeleton
                 key={index}
-                className="h-80 rounded-3xl bg-white/5 border border-white/10"
+                className="h-80 rounded-3xl bg-slate-100 border border-slate-200"
               />
             ))}
           </div>
@@ -251,12 +249,12 @@ export default function CourtsPage() {
         )}
 
         {!isLoading && enrichedCourts.length === 0 && (
-          <div className="md-surface md-elevation-1 border border-white/10 rounded-3xl px-10 py-16 text-center space-y-4 text-white/80">
+          <div className="rounded-3xl bg-white border border-slate-200 px-10 py-16 text-center space-y-4 text-slate-600 shadow-[0_24px_55px_-32px_rgba(15,23,42,0.25)]">
             <div className="flex items-center justify-center">
-              <ShieldAlert className="w-12 h-12 text-white/70" />
+              <ShieldAlert className="w-12 h-12 text-slate-400" />
             </div>
             <p className="text-lg">
-              尚未建立任何場地，點擊右上角「新增場地」即可開始設定。
+              \u5c1a\u672a\u5efa\u7acb\u4efb\u4f55\u5834\u5730\uff0c\u9ede\u64ca\u53f3\u4e0a\u89d2\u300c\u65b0\u589e\u5834\u5730\u300d\u5373\u53ef\u958b\u59cb\u8a2d\u5b9a\u3002
             </p>
           </div>
         )}
@@ -264,24 +262,26 @@ export default function CourtsPage() {
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent
-          className="rounded-3xl border border-white/10 bg-white/10 backdrop-blur-xl"
+          className="rounded-3xl border border-slate-200 bg-white shadow-[0_24px_60px_-28px_rgba(15,23,42,0.28)]"
           data-testid="dialog-create-court"
         >
           <DialogHeader>
-            <DialogTitle className="text-2xl text-white">新增場地</DialogTitle>
+            <DialogTitle className="text-2xl text-slate-900">
+              \u65b0\u589e\u5834\u5730
+            </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateCourt} className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="courtName" className="text-base font-medium text-white">
-                場地名稱
+              <Label htmlFor="courtName" className="text-base font-medium text-slate-700">
+                \u5834\u5730\u540d\u7a31
               </Label>
               <Input
                 id="courtName"
                 value={courtName}
                 onChange={(event) => setCourtName(event.target.value)}
-                placeholder="例如：E 號場"
+                placeholder="\u4f8b\u5982\uff1aE \u865f\u5834"
                 required
-                className="h-12 rounded-xl bg-white/5 border-white/20 text-white placeholder:text-white/60"
+                className="h-12 rounded-xl bg-white border border-slate-200 text-slate-800 placeholder:text-slate-400"
                 data-testid="input-court-name"
               />
             </div>
@@ -290,19 +290,19 @@ export default function CourtsPage() {
                 type="button"
                 variant="outline"
                 onClick={() => setCreateDialogOpen(false)}
-                className="flex-1 rounded-full h-12"
+                className="flex-1 rounded-full h-12 border-slate-200 text-slate-700 hover:bg-slate-100"
                 data-testid="button-cancel-court"
               >
-                取消
+                \u53d6\u6d88
               </Button>
               <Button
                 variant="secondary"
                 type="submit"
-                className="flex-1 rounded-full h-12 font-medium"
+                className="flex-1 rounded-full h-12 font-medium bg-primary text-white hover:bg-primary/90"
                 data-testid="button-submit-court"
                 disabled={createMutation.isPending}
               >
-                {createMutation.isPending ? "建立中..." : "建立"}
+                {createMutation.isPending ? "\u5efa\u7acb\u4e2d..." : "\u5efa\u7acb"}
               </Button>
             </div>
           </form>
