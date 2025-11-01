@@ -43,17 +43,19 @@ export default function RegistrationDialog({
     enabled: open && type === "team",
   });
 
+  const registrationsKey = `/api/registrations?eventId=${eventId}`;
+
   const { data: registrations = [] } = useQuery<Registration[]>({
-    queryKey: ["/api/registrations", { eventId }],
+    queryKey: [registrationsKey],
     enabled: open,
   });
 
   useEffect(() => {
     if (open) {
-      queryClient.refetchQueries({ queryKey: ["/api/registrations", { eventId }] });
+      queryClient.refetchQueries({ queryKey: [registrationsKey] });
       queryClient.refetchQueries({ queryKey: ["/api/events"] });
     }
-  }, [open, eventId]);
+  }, [open, eventId, registrationsKey]);
 
   const currentCount = registrations.reduce((acc, reg) => {
     return acc + (reg.type === "team" ? 2 : 1);
@@ -75,10 +77,10 @@ export default function RegistrationDialog({
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["/api/registrations"] }),
-        queryClient.invalidateQueries({ queryKey: ["/api/registrations", { eventId }] }),
+        queryClient.invalidateQueries({ queryKey: [registrationsKey] }),
         queryClient.invalidateQueries({ queryKey: ["/api/events"] }),
       ]);
-      await queryClient.refetchQueries({ queryKey: ["/api/registrations"] });
+      await queryClient.refetchQueries({ queryKey: [registrationsKey] });
       onOpenChange(false);
       setUserName("");
       setSelectedTeam("");
